@@ -1,0 +1,24 @@
+# @package _global_
+
+train_fn: agents.ppo.train.train
+
+env_name: ant
+training_config:
+  num_timesteps: 50000000
+  num_evals: 10
+  reward_scaling: 10
+  episode_length: 1000
+  normalize_observations: true
+  action_repeat: 1
+  unroll_length: 5
+  num_minibatches: 32
+  num_updates_per_batch: 4
+  discounting: 0.97
+  learning_rate: 0.0003
+  entropy_cost: 0.01
+  num_envs: 4096
+  batch_size: 2048
+  seed: 1
+
+wandb:
+  name: ppo-${env_name}

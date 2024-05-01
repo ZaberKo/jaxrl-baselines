@@ -1,0 +1,23 @@
+# @package _global_
+
+train_fn: agents.ppo.train.train
+
+env_name: humanoidstandup
+num_timesteps: 100000000
+num_evals: 20
+reward_scaling: 0.1
+episode_length: 1000
+normalize_observations: true
+action_repeat: 1
+unroll_length: 15
+num_minibatches: 32
+num_updates_per_batch: 8
+discounting: 0.97
+learning_rate: 0.0006
+entropy_cost: 0.01
+num_envs: 2048
+batch_size: 1024
+seed: 1
+
+wandb:
+  name: ppo-${env_name}

@@ -1,0 +1,23 @@
+# @package _global_
+
+train_fn: agents.sac.train.train
+
+env_name: walker2d
+num_timesteps: 7864320
+num_evals: 20
+reward_scaling: 5
+episode_length: 1000
+normalize_observations: true
+action_repeat: 1
+discounting: 0.997
+learning_rate: 0.0006
+num_envs: 128
+batch_size: 128
+grad_updates_per_step: 32
+max_devices_per_host: 1
+max_replay_size: 1048576
+min_replay_size: 8192
+seed: 1
+
+wandb:
+  name: sac-${env_name}

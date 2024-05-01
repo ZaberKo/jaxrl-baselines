@@ -1,0 +1,24 @@
+# @package _global_
+
+train_fn: agents.ppo.train.train
+
+env_name: inverted_pendulum
+num_timesteps: 2000000
+num_evals: 20
+reward_scaling: 10
+episode_length: 1000
+normalize_observations: true
+action_repeat: 1
+unroll_length: 5
+num_minibatches: 32
+num_updates_per_batch: 4
+discounting: 0.97
+learning_rate: 0.0003
+entropy_cost: 0.01
+num_envs: 2048
+batch_size: 1024
+seed: 1
+
+
+wandb:
+  name: ppo-${env_name}
