@@ -15,11 +15,12 @@ import brax
 
 import flax
 from brax import envs
-from utils import get_output_dir, metrics_todict
+from utils import get_output_dir, metrics_todict, set_omegaconf_resolvers
 import hydra
 from omegaconf import OmegaConf, DictConfig
 import wandb
 
+set_omegaconf_resolvers()
 
 @hydra.main(version_base=None, config_path="./configs", config_name="config")
 def train(config: DictConfig):
