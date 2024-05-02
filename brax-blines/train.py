@@ -50,11 +50,8 @@ def train(config: DictConfig):
         wandb.log(metrics_todict(metrics), env_steps)
         # pprint(metrics)
 
-    def save_fn(env_steps, make_policy, params):
-        policy = make_policy(params, deterministic=True)
-
     make_inference_fn, params, metrics = train_fn(
-        environment=env, progress_fn=wandb_progess_fn, policy_params_fn=save_fn)
+        environment=env, progress_fn=wandb_progess_fn)
 
     print(f'time to jit: {times[1] - times[0]}')
     print(f'time to train: {times[-1] - times[1]}')

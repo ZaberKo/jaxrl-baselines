@@ -3,22 +3,23 @@
 train_fn: agents.ppo.train.train
 
 env_name: reacher
-num_timesteps: 50000000
-num_evals: 20
-reward_scaling: 5
-episode_length: 1000
-normalize_observations: true
-action_repeat: 4
-unroll_length: 50
-num_minibatches: 32
-num_updates_per_batch: 8
-discounting: 0.95
-learning_rate: 0.0003
-entropy_cost: 0.001
-num_envs: 2048
-batch_size: 256
-max_devices_per_host: 8
-seed: 1
+training_config:
+  num_timesteps: 50000000
+  num_evals: 20
+  reward_scaling: 5
+  episode_length: 1000
+  normalize_observations: true
+  action_repeat: 4
+  unroll_length: 50
+  num_minibatches: 32
+  num_updates_per_batch: 8
+  discounting: 0.95
+  learning_rate: 0.0003
+  entropy_cost: 0.001
+  num_envs: 2048
+  batch_size: 256
+  max_devices_per_host: 8
+  seed: 1
 
 wandb:
   name: ppo-${env_name}
