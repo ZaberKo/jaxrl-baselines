@@ -14,7 +14,11 @@
             "args": [
                 "agent=ppo/ant",
                 "training_config.num_evals=100"
-            ]
+            ],
+            "env": {
+                // "JAX_DISABLE_JIT": "true"
+                "WANDB_MODE": "disabled"
+            }
         }
     ]
 }

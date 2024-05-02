@@ -31,7 +31,7 @@ def train(config: DictConfig):
     wandb.init(
         project=config.wandb.project,
         name=config.wandb.name,
-        config=OmegaConf.to_container(config),
+        config=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
         tags=config.wandb.tags,
         dir=output_dir
     )
@@ -56,6 +56,7 @@ def train(config: DictConfig):
 
     print(f'time to jit: {times[1] - times[0]}')
     print(f'time to train: {times[-1] - times[1]}')
+    wandb.finish()
 
 
 if __name__ == '__main__':
