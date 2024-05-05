@@ -1,0 +1,22 @@
+# @package _global_
+
+train_fn: agents.ppo.train.train
+env_name: halfcheetah
+training_config:
+  total_env_steps: 500000000
+  eval_frequency: 20
+  reward_scaling: 1
+  episode_length: 1000
+  normalize_observations: true
+  action_repeat: 1
+  entropy_cost: 0.001
+  learning_rate: 0.0003
+  discounting: 0.997
+  num_envs: 2048
+  unroll_length: 5
+  batch_size: 512
+  num_minibatches: 4
+  num_update_epochs: 4
+  seed: 0
+wandb:
+  name: ppo-halfcheetah-500m

@@ -229,3 +229,5 @@ pyrightconfig.json
 
 outputs/
 multirun/
+
+brax-blines/configs/*.json
