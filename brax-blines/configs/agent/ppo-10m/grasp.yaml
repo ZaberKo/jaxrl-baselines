@@ -3,8 +3,6 @@
 train_fn: agents.ppo.train.train
 env_name: grasp
 training_config:
-  total_env_steps: 10000000
-  eval_frequency: 20
   reward_scaling: 5
   episode_length: 1000
   normalize_observations: true
@@ -18,5 +16,7 @@ training_config:
   num_minibatches: 8
   num_update_epochs: 8
   seed: 0
+  num_evals: 100
+  num_timesteps: 10000000
 wandb:
   name: ppo-grasp-10m

@@ -3,8 +3,6 @@
 train_fn: agents.sac.train.train
 env_name: grasp
 training_config:
-  total_env_steps: 5242880
-  eval_frequency: 131012
   reward_scaling: 30
   episode_length: 1000
   normalize_observations: true
@@ -17,5 +15,8 @@ training_config:
   batch_size: 512
   grad_updates_per_step: 0.0625
   seed: 0
+  num_evals: 100
+  num_timesteps: 5242880
+  max_devices_per_host: 1
 wandb:
   name: sac-grasp-10m

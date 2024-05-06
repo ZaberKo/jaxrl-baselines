@@ -1,4 +1,5 @@
 # %%
+from omegaconf import OmegaConf
 import json
 from pathlib import Path
 import numpy as np
@@ -12,7 +13,6 @@ root_path = Path('configs')
 ppo_10 = root_path/'ppo_10_million_steps.json'
 ppo_500 = root_path/'ppo_500_million_steps.json'
 sac_5 = root_path/'sac_5_million_steps.json'
-
 
 
 # # %%
@@ -42,7 +42,7 @@ def read_best_cfg(path):
         config_dict[cfg['env']].append(cfg)
 
     for env, cfgs in config_dict.items():
-        print(env, "#cfgs:",len(cfgs))
+        print(env, "#cfgs:", len(cfgs))
         # pprint(cfgs[0])
         print(yaml.dump(cfgs[0], indent=2))
         print()
@@ -54,7 +54,7 @@ read_best_cfg(ppo_10)
 # %%
 read_best_cfg(ppo_500)
 # %%
-from omegaconf import OmegaConf
+
 
 def write_best_cfg(path, dst_path):
     with path.open('r') as f:
@@ -74,6 +74,9 @@ def write_best_cfg(path, dst_path):
         cfg = OmegaConf.create(cfgs[0])
         env_name = cfg.pop('env')
         cfg.pop('learner')
+        cfg.pop('eval_frequency')
+        cfg.num_evals = 100
+        cfg.num_timesteps = cfg.pop('total_env_steps')
         assert env == env_name
 
         new_cfg = OmegaConf.create()
@@ -84,13 +87,16 @@ def write_best_cfg(path, dst_path):
 
         OmegaConf.save(new_cfg, dst_path/f"{env_name}.yaml")
         with (dst_path/f"{env_name}.yaml").open('r') as f:
-            data=f.read()
+            data = f.read()
         with (dst_path/f"{env_name}.yaml").open('w') as f:
             f.write('# @package _global_\n\n')
             f.write(data)
 
+
 write_best_cfg(ppo_10, root_path/'agent'/'ppo-10m')
 # %%
+
+
 def write_best_cfg(path, dst_path):
     with path.open('r') as f:
         data = json.load(f)
@@ -109,6 +115,9 @@ def write_best_cfg(path, dst_path):
         cfg = OmegaConf.create(cfgs[0])
         env_name = cfg.pop('env')
         cfg.pop('learner')
+        cfg.pop('eval_frequency')
+        cfg.num_evals = 200
+        cfg.num_timesteps = cfg.pop('total_env_steps')
         assert env == env_name
 
         new_cfg = OmegaConf.create()
@@ -120,13 +129,16 @@ def write_best_cfg(path, dst_path):
         OmegaConf.save(new_cfg, dst_path/f"{env_name}.yaml")
 
         with (dst_path/f"{env_name}.yaml").open('r') as f:
-            data=f.read()
+            data = f.read()
         with (dst_path/f"{env_name}.yaml").open('w') as f:
             f.write('# @package _global_\n\n')
             f.write(data)
 
+
 write_best_cfg(ppo_500, root_path/'agent'/'ppo-500m')
 # %%
+
+
 def write_best_cfg(path, dst_path):
     with path.open('r') as f:
         data = json.load(f)
@@ -145,6 +157,10 @@ def write_best_cfg(path, dst_path):
         cfg = OmegaConf.create(cfgs[0])
         env_name = cfg.pop('env')
         cfg.pop('learner')
+        cfg.pop('eval_frequency')
+        cfg.num_evals = 100
+        cfg.num_timesteps = cfg.pop('total_env_steps')
+        cfg.max_devices_per_host = 1
         assert env == env_name
 
         new_cfg = OmegaConf.create()
@@ -155,11 +171,11 @@ def write_best_cfg(path, dst_path):
 
         OmegaConf.save(new_cfg, dst_path/f"{env_name}.yaml")
         with (dst_path/f"{env_name}.yaml").open('r') as f:
-            data=f.read()
+            data = f.read()
         with (dst_path/f"{env_name}.yaml").open('w') as f:
             f.write('# @package _global_\n\n')
             f.write(data)
 
-            
+
 write_best_cfg(sac_5, root_path/'agent'/'sac-5m')
 # %%

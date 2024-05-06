@@ -3,8 +3,6 @@
 train_fn: agents.ppo.train.train
 env_name: halfcheetah
 training_config:
-  total_env_steps: 500000000
-  eval_frequency: 20
   reward_scaling: 1
   episode_length: 1000
   normalize_observations: true
@@ -18,5 +16,7 @@ training_config:
   num_minibatches: 4
   num_update_epochs: 4
   seed: 0
+  num_evals: 200
+  num_timesteps: 500000000
 wandb:
   name: ppo-halfcheetah-500m
