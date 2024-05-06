@@ -77,6 +77,7 @@ def write_best_cfg(path, dst_path):
         cfg.pop('eval_frequency')
         cfg.num_evals = 100
         cfg.num_timesteps = cfg.pop('total_env_steps')
+        cfg.num_updates_per_batch = cfg.pop('num_update_epochs')
         assert env == env_name
 
         new_cfg = OmegaConf.create()
@@ -118,6 +119,7 @@ def write_best_cfg(path, dst_path):
         cfg.pop('eval_frequency')
         cfg.num_evals = 200
         cfg.num_timesteps = cfg.pop('total_env_steps')
+        cfg.num_updates_per_batch = cfg.pop('num_update_epochs')
         assert env == env_name
 
         new_cfg = OmegaConf.create()
@@ -161,6 +163,7 @@ def write_best_cfg(path, dst_path):
         cfg.num_evals = 100
         cfg.num_timesteps = cfg.pop('total_env_steps')
         cfg.max_devices_per_host = 1
+        cfg.grad_updates_per_step = round(cfg.num_envs * cfg.grad_updates_per_step)
         assert env == env_name
 
         new_cfg = OmegaConf.create()

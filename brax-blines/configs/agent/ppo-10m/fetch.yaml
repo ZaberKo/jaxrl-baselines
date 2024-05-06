@@ -14,9 +14,9 @@ training_config:
   unroll_length: 5
   batch_size: 512
   num_minibatches: 32
-  num_update_epochs: 8
   seed: 0
   num_evals: 100
   num_timesteps: 10000000
+  num_updates_per_batch: 8
 wandb:
   name: ppo-fetch-10m

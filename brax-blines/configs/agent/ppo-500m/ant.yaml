@@ -14,9 +14,9 @@ training_config:
   unroll_length: 5
   batch_size: 512
   num_minibatches: 4
-  num_update_epochs: 4
   seed: 0
   num_evals: 200
   num_timesteps: 500000000
+  num_updates_per_batch: 4
 wandb:
   name: ppo-ant-500m

@@ -14,9 +14,9 @@ training_config:
   unroll_length: 20
   batch_size: 512
   num_minibatches: 4
-  num_update_epochs: 2
   seed: 0
   num_evals: 200
   num_timesteps: 500000000
+  num_updates_per_batch: 2
 wandb:
   name: ppo-humanoid-500m
