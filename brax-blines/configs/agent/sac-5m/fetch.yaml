@@ -19,4 +19,4 @@ training_config:
   num_timesteps: 5242880
   max_devices_per_host: 1
 wandb:
-  name: sac-fetch-10m
+  name: sac-fetch-5m

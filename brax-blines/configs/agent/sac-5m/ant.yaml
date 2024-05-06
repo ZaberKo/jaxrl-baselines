@@ -19,4 +19,4 @@ training_config:
   num_timesteps: 5242880
   max_devices_per_host: 1
 wandb:
-  name: sac-ant-10m
+  name: sac-ant-5m

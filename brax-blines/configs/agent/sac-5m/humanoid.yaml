@@ -19,4 +19,4 @@ training_config:
   num_timesteps: 5242880
   max_devices_per_host: 1
 wandb:
-  name: sac-humanoid-10m
+  name: sac-humanoid-5m

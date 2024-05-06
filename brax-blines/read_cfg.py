@@ -167,7 +167,7 @@ def write_best_cfg(path, dst_path):
         new_cfg.train_fn = 'agents.sac.train.train'
         new_cfg.env_name = env_name
         new_cfg.training_config = cfg
-        new_cfg.wandb = dict(name=f'sac-{env_name}-10m')
+        new_cfg.wandb = dict(name=f'sac-{env_name}-5m')
 
         OmegaConf.save(new_cfg, dst_path/f"{env_name}.yaml")
         with (dst_path/f"{env_name}.yaml").open('r') as f:
