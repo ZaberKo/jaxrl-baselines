@@ -12,6 +12,7 @@ from IPython.display import HTML, clear_output
 
 import brax
 
+import brax.v1.envs as v1_envs
 
 import flax
 from brax import envs
@@ -36,26 +37,37 @@ def train(config: DictConfig):
         dir=output_dir
     )
 
-    env_name = config.env_name
+    try:
+        env_name = config.env_name
 
-    env = envs.get_environment(env_name)
+        if env_name in envs._envs:
+            # prefer v2 envs
+            env = envs.get_environment(env_name)
+        elif env_name in v1_envs._envs:
+            env = v1_envs.get_environment(env_name)
+        else:
+            raise ValueError(f'Unknown environment {env_name}')
 
-    train_fn = hydra.utils.get_method(config.train_fn)
+        train_fn = hydra.utils.get_method(config.train_fn)
 
-    train_fn = functools.partial(train_fn, **config.training_config)
+        train_fn = functools.partial(train_fn, **config.training_config)
 
-    times = [datetime.now()]
+        times = [datetime.now()]
 
-    def wandb_progess_fn(env_steps, metrics):
-        times.append(datetime.now())
-        wandb.log(metrics_todict(metrics), env_steps)
-        # pprint(metrics)
+        def wandb_progess_fn(env_steps, metrics):
+            times.append(datetime.now())
+            wandb.log(metrics_todict(metrics), env_steps)
+            # pprint(metrics)
 
-    make_inference_fn, params, metrics = train_fn(
-        environment=env, progress_fn=wandb_progess_fn)
+        make_inference_fn, params, metrics = train_fn(
+            environment=env, progress_fn=wandb_progess_fn)
 
-    print(f'time to jit: {times[1] - times[0]}')
-    print(f'time to train: {times[-1] - times[1]}')
+        print(f'time to jit: {times[1] - times[0]}')
+        print(f'time to train: {times[-1] - times[1]}')
+    except Exception as e:
+        print(e)
+        wandb.finish(1)
+
     wandb.finish()
 
 
