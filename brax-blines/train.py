@@ -44,7 +44,7 @@ def train(config: DictConfig):
             # prefer v2 envs
             env = envs.get_environment(env_name)
         elif env_name in v1_envs._envs:
-            env = v1_envs.get_environment(env_name)
+            env = v1_envs.get_environment(env_name, legacy_spring=True)
         else:
             raise ValueError(f'Unknown environment {env_name}')
 
