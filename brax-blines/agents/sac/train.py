@@ -172,7 +172,8 @@ def train(
   if isinstance(env, envs.Env):
     wrap_for_training = envs.training.wrap
   else:
-    wrap_for_training = envs_v1.wrappers.wrap_for_training
+    wrap_for_training = lambda env, episode_length, action_repeat, randomization_fn: \
+      envs_v1.wrappers.wrap_for_training(env, episode_length, action_repeat)
 
   rng = jax.random.PRNGKey(seed)
   rng, key = jax.random.split(rng)
