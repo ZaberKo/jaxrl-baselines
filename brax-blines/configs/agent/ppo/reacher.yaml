@@ -19,7 +19,7 @@ training_config:
   num_envs: 2048
   batch_size: 256
   max_devices_per_host: 8
-  seed: 1
+  seed: ${seed}
 
 wandb:
   name: ppo-${env_name}

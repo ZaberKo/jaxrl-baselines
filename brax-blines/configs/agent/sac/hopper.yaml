@@ -18,7 +18,7 @@ training_config:
   max_devices_per_host: 1
   max_replay_size: 1048576
   min_replay_size: 8192
-  seed: 1
+  seed: ${seed}
 
 wandb:
   name: sac-${env_name}

@@ -18,7 +18,7 @@ training_config:
   entropy_cost: 0.01
   num_envs: 4096
   batch_size: 2048
-  seed: 1
+  seed: ${seed}
 
 wandb:
   name: ppo-${env_name}

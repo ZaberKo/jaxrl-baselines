@@ -14,7 +14,7 @@ training_config:
   unroll_length: 5
   batch_size: 1024
   num_minibatches: 8
-  seed: 0
+  seed: ${seed}
   num_evals: 100
   num_timesteps: 10000000
   num_updates_per_batch: 8

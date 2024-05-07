@@ -14,7 +14,7 @@ training_config:
   max_replay_size: 1048576
   batch_size: 512
   grad_updates_per_step: 64
-  seed: 4
+  seed: ${seed}
   num_evals: 100
   num_timesteps: 5242880
   max_devices_per_host: 1
