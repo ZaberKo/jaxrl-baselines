@@ -231,3 +231,5 @@ outputs/
 multirun/
 
 brax-blines/configs/*.json
+
+runs/
