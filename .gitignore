@@ -233,3 +233,5 @@ multirun/
 brax-blines/configs/*.json
 
 runs/
+*template.sh
+job*.out
