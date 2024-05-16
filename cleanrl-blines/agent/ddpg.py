@@ -7,12 +7,13 @@ import flax
 import flax.linen as nn
 from brax import envs as brax_envs
 import jax
+from jax import jit
 import jax.numpy as jnp
 import numpy as np
 import optax
-import tyro
+# import tyro
 from flax.training.train_state import TrainState
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 from omegaconf import DictConfig
 from brax.envs.wrappers import gym as gym_wrapper
 import warnings
@@ -51,6 +52,29 @@ class Actor(nn.Module):
 class TrainState(TrainState):
     target_params: flax.core.FrozenDict
 
+
+def get_rb_item(obs, action, reward, next_obs, done, truncation):
+    item = dict(
+    obs=obs,
+    actions = action,
+    rewards = reward,
+    next_obs = next_obs,
+    dones = done,
+    truncation = truncation)
+    return item
+
+def get_rb_item_from_state(env_state, obs, action):
+    item = dict(
+        obs=obs,
+        actions=action,
+        rewards=env_state.reward,
+        next_obs=env_state.obs,
+        dones=env_state.done,
+        truncation=env_state.info["truncation"],
+    )
+    return item
+
+
 def replayer_buffer(args, env):
     rb = flashbax.make_item_buffer(
         max_length=args.buffer_size,
@@ -65,19 +89,15 @@ def replayer_buffer(args, env):
     dummy_done = jnp.zeros(())
     dummy_nest_obs = dummy_obs
 
-    dummy_sample_batch = dict(
-        obs=dummy_obs,
-        actions=dummy_action,
-        rewards=dummy_reward,
-        next_obs=dummy_nest_obs,
-        dones=dummy_done,
-        extras={"last_obs": dummy_obs, "truncation": dummy_done}
-    )   
+    dummy_sample_batch = get_rb_item(
+        dummy_obs, dummy_action, dummy_reward, dummy_nest_obs, dummy_done, dummy_done
+    )
     rb_state = rb.init(dummy_sample_batch)
     return rb, rb_state
 
 def main(args: DictConfig) -> None:
     warnings.filterwarnings("ignore", category=DeprecationWarning, module="brax.*") 
+    warnings.filterwarnings("ignore", category=DeprecationWarning, module="flashbax.*")
     run_name = f"{args.env_name}__{args.exp_name}__{args.seed}__{int(time.time())}"
     if args.track:
         import wandb
@@ -113,7 +133,8 @@ def main(args: DictConfig) -> None:
     env_state = envs.reset(env_key)
     action_space = envs.sys.actuator.ctrl_range
     obs = env_state.obs
-
+    action_low = action_space[0, 0]
+    action_high = action_space[0, 1]
     actor = Actor(
         action_dim=envs.action_size,
         action_scale=(action_space[0, 1] - action_space[0, 0]) / 2,
@@ -195,8 +216,10 @@ def main(args: DictConfig) -> None:
         return actor_state, qf1_state, actor_loss_value
 
     start_time = time.time()
+    envs.step = jit(envs.step)
+    # rb.add = jit(rb.add)
     for global_step in range(args.total_timesteps):
-        key, loop_key = jax.random.split(key, 2)
+        key, loop_key, sample_key = jax.random.split(key, 3)
         # ALGO LOGIC: put action logic here
         if global_step < args.learning_starts:
             # actions = np.array(
@@ -205,8 +228,8 @@ def main(args: DictConfig) -> None:
             actions = jax.random.uniform(
                 loop_key,
                 shape=(args.num_envs, envs.action_size),
-                minval=action_space[0,0],
-                maxval=action_space[0,1],
+                minval=action_low,
+                maxval=action_high,
             )
         else:
             actions = actor.apply(actor_state.params, obs)
@@ -216,13 +239,21 @@ def main(args: DictConfig) -> None:
                         jax.device_get(actions)[0]
                         + np.random.normal(
                             0, actor.action_scale * args.exploration_noise
-                        )[0]
-                    ).clip(envs.single_action_space.low, envs.single_action_space.high)
+                        )
+                    ).clip(action_low, action_high)
                 ]
             )
 
         # TRY NOT TO MODIFY: execute the game and log data.
-        next_obs, rewards, terminations, truncations, infos = envs.step(actions)
+        env_state = envs.step(env_state, actions)
+        next_obs, rewards, terminations, truncations, infos = (
+            env_state.obs,
+            env_state.reward,
+            env_state.done,
+            env_state.info["truncation"],
+            env_state.info,
+        )
+        # next_obs, rewards, terminations, truncations, infos = envs.step(env_state, actions)
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         if "final_info" in infos:
@@ -239,33 +270,35 @@ def main(args: DictConfig) -> None:
                 break
 
         # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
-        real_next_obs = next_obs.copy()
-        for idx, trunc in enumerate(truncations):
-            if trunc:
-                real_next_obs[idx] = infos["final_observation"][idx]
-        rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
-
+        # real_next_obs = next_obs.copy()
+        # for idx, trunc in enumerate(truncations):
+        #     if trunc:
+        #         real_next_obs[idx] = infos["final_observation"][idx]
+        # rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
+        trajectory = get_rb_item_from_state(env_state, obs, actions)
+        rb_state = rb.add(rb_state, trajectory)
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
 
         # ALGO LOGIC: training.
         if global_step > args.learning_starts:
-            data = rb.sample(args.batch_size)
+            # data = rb.sample(args.batch_size)
+            data = rb.sample(rb_state, sample_key).experience
 
             qf1_state, qf1_loss_value, qf1_a_values = update_critic(
                 actor_state,
                 qf1_state,
-                data.observations.numpy(),
-                data.actions.numpy(),
-                data.next_observations.numpy(),
-                data.rewards.flatten().numpy(),
-                data.dones.flatten().numpy(),
+                np.array(data["obs"]),
+                np.array(data["actions"]),
+                np.array(data["next_obs"]),
+                np.array(data["rewards"].flatten()),
+                np.array(data["dones"].flatten()),
             )
             if global_step % args.policy_frequency == 0:
                 actor_state, qf1_state, actor_loss_value = update_actor(
                     actor_state,
                     qf1_state,
-                    data.observations.numpy(),
+                    np.array(data["obs"]),
                 )
 
             if global_step % 100 == 0:
