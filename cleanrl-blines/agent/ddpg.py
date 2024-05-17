@@ -13,7 +13,7 @@ from flax.training.train_state import TrainState
 from tensorboardX import SummaryWriter
 from omegaconf import DictConfig
 import warnings
-from utils import (
+from agent.utils import (
     get_rb_item,
     get_rb_item_from_state,
     replayer_buffer,
@@ -51,7 +51,7 @@ class Actor(nn.Module):
 
 
 class TrainState(TrainState):
-    target_params: flax.core.FrozenDic
+    target_params: flax.core.FrozenDict
 
 
 def main(args: DictConfig) -> None:

@@ -14,7 +14,7 @@ from brax import envs as brax_envs
 from tensorboardX import SummaryWriter
 from omegaconf import DictConfig
 import warnings
-from utils import (
+from agent.utils import (
     get_rb_item,
     get_rb_item_from_state,
     replayer_buffer,
@@ -59,7 +59,7 @@ def main(args: DictConfig) -> None:
     warnings.filterwarnings("ignore", category=DeprecationWarning, module="brax.*")
     warnings.filterwarnings("ignore", category=DeprecationWarning, module="flashbax.*")
 
-    run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+    run_name = f"{args.env_name}__{args.exp_name}__{args.seed}__{int(time.time())}"
     if args.track:
         import wandb
 
