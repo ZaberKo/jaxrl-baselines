@@ -110,7 +110,7 @@ def test_actor_performance(envs, env_key, actor, actor_state, num_episodes=10):
             # Execute action in the environment
             env_state = envs.step(env_state, action)
             obs = env_state.obs
-            reward = env_state.reward if step_count ==0 else 0.99*env_state.reward
+            reward = (0.99^step_count)*env_state.reward
             done = env_state.done
             step_count += 1
             # Accumulate rewards for the episode
