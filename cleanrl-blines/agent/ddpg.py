@@ -95,6 +95,32 @@ def replayer_buffer(args, env):
     rb_state = rb.init(dummy_sample_batch)
     return rb, rb_state
 
+def test_actor_performance(envs, env_key, actor, actor_state, num_episodes=10):
+    total_rewards = []
+    for _ in range(num_episodes):
+        # Reset the environment for a new episode
+        env_state = envs.reset(env_key)
+        obs = env_state.obs
+        done = False
+        episode_reward = 0.0
+        step_count = 0
+        while not done and  step_count < 1000:
+            # Generate action from the actor network
+            action = actor.apply(actor_state.params, obs)
+            # Execute action in the environment
+            env_state = envs.step(env_state, action)
+            obs = env_state.obs
+            reward = env_state.reward if step_count ==0 else 0.99*env_state.reward
+            done = env_state.done
+            step_count += 1
+            # Accumulate rewards for the episode
+            episode_reward += reward.sum()  # sum rewards if environment is vectorized
+
+        total_rewards.append(episode_reward)
+
+    average_reward = np.mean(total_rewards)
+    return average_reward
+
 def main(args: DictConfig) -> None:
     warnings.filterwarnings("ignore", category=DeprecationWarning, module="brax.*") 
     warnings.filterwarnings("ignore", category=DeprecationWarning, module="flashbax.*")
@@ -307,25 +333,27 @@ def main(args: DictConfig) -> None:
                 writer.add_scalar(
                     "losses/actor_loss", actor_loss_value.item(), global_step
                 )
-                print("SPS:", int(global_step / (time.time() - start_time)))
+                average_reward = test_actor_performance(envs, env_key, actor, actor_state)
+                writer.add_scalar("test/average_reward", average_reward, global_step)
+                # print("SPS:", int(global_step / (time.time() - start_time)))
                 writer.add_scalar(
                     "charts/SPS",
                     int(global_step / (time.time() - start_time)),
                     global_step,
                 )
 
-    # if args.save_model:
-    #     model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
-    #     with open(model_path, "wb") as f:
-    #         f.write(
-    #             flax.serialization.to_bytes(
-    #                 [
-    #                     actor_state.params,
-    #                     qf1_state.params,
-    #                 ]
-    #             )
-    #         )
-    #     print(f"model saved to {model_path}")
+    if args.save_model:
+        model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
+        with open(model_path, "wb") as f:
+            f.write(
+                flax.serialization.to_bytes(
+                    [
+                        actor_state.params,
+                        qf1_state.params,
+                    ]
+                )
+            )
+        print(f"model saved to {model_path}")
     # from cleanrl_utils.evals.ddpg_jax_eval import evaluate
 
     # episodic_returns = evaluate(
