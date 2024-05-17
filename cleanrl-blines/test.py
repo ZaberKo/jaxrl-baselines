@@ -1,6 +1,6 @@
 import brax
 from brax import envs
-import gymnasium as gym
+# import gymnasium as gym
 from brax.envs.wrappers import gym as gym_wrapper
 
 env_name = 'hopper'
