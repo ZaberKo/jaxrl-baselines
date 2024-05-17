@@ -354,5 +354,5 @@ def main(args: DictConfig) -> None:
     #         f"videos/{run_name}-eval",
     #     )
 
-    envs.close()
+    # envs.close()
     writer.close()
