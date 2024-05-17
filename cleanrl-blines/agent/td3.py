@@ -5,6 +5,7 @@ import time
 import flax
 import flax.linen as nn
 import jax
+from jax import jit
 import jax.numpy as jnp
 import numpy as np
 import optax
@@ -87,13 +88,14 @@ def main(args: DictConfig) -> None:
     # env setup
     envs = brax_envs.create(env_name=args.env_name, batch_size=args.num_envs, )
 
-    max_action = float(envs.single_action_space.high[0])
+    # max_action = float(envs.single_action_space.high[0])
     rb, rb_state = replayer_buffer(args, envs)
     env_state = envs.reset(env_key)
     obs = env_state.obs
     action_space = envs.sys.actuator.ctrl_range
     action_low = action_space[0, 0]
     action_high = action_space[0, 1]
+    max_action = float(action_high)
 
     actor = Actor(
         action_dim=np.prod(envs.action_size),
@@ -109,14 +111,14 @@ def main(args: DictConfig) -> None:
     qf = QNetwork()
     qf1_state = TrainState.create(
         apply_fn=qf.apply,
-        params=qf.init(qf1_key, obs, envs.action_space.sample()),
-        target_params=qf.init(qf1_key, obs, envs.action_space.sample()),
+        params=qf.init(qf1_key, obs, jnp.ones((1, envs.action_size))),
+        target_params=qf.init(qf1_key, obs, jnp.ones((1, envs.action_size))),
         tx=optax.adam(learning_rate=args.learning_rate),
     )
     qf2_state = TrainState.create(
         apply_fn=qf.apply,
-        params=qf.init(qf2_key, obs, envs.action_space.sample()),
-        target_params=qf.init(qf2_key, obs, envs.action_space.sample()),
+        params=qf.init(qf2_key, obs, jnp.ones((1, envs.action_size))),
+        target_params=qf.init(qf2_key, obs, jnp.ones((1, envs.action_size))),
         tx=optax.adam(learning_rate=args.learning_rate),
     )
     actor.apply = jax.jit(actor.apply)
@@ -213,12 +215,17 @@ def main(args: DictConfig) -> None:
         )
         return actor_state, (qf1_state, qf2_state), actor_loss_value
 
+    envs.step = jit(envs.step)
     start_time = time.time()
     for global_step in range(args.total_timesteps):
+        key, loop_key, sample_key = jax.random.split(key, 3)
         # ALGO LOGIC: put action logic here
         if global_step < args.learning_starts:
-            actions = np.array(
-                [envs.single_action_space.sample() for _ in range(envs.num_envs)]
+            actions = jax.random.uniform(
+                loop_key,
+                shape=(args.num_envs, envs.action_size),
+                minval=action_low,
+                maxval=action_high,
             )
         else:
             actions = actor.apply(actor_state.params, obs)
@@ -229,14 +236,21 @@ def main(args: DictConfig) -> None:
                         + np.random.normal(
                             0,
                             max_action * args.exploration_noise,
-                            size=envs.single_action_space.shape,
+                            size=envs.action_size,
                         )
-                    ).clip(envs.single_action_space.low, envs.single_action_space.high)
+                    ).clip(action_low, action_high)
                 ]
             )
 
         # TRY NOT TO MODIFY: execute the game and log data.
-        next_obs, rewards, terminations, truncations, infos = envs.step(actions)
+        env_state = envs.step(env_state, actions)
+        next_obs, rewards, terminations, truncations, infos = (
+            env_state.obs,
+            env_state.reward,
+            env_state.done,
+            env_state.info["truncation"],
+            env_state.info,
+        )
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         if "final_info" in infos:
@@ -257,15 +271,15 @@ def main(args: DictConfig) -> None:
         for idx, trunc in enumerate(truncations):
             if trunc:
                 real_next_obs[idx] = infos["final_observation"][idx]
-        rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
-
+        trajectory = get_rb_item_from_state(env_state, obs, actions)
+        rb_state = rb.add(rb_state, trajectory)
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
 
         # ALGO LOGIC: training.
         if global_step > args.learning_starts:
-            data = rb.sample(args.batch_size)
-
+            # data = rb.sample(args.batch_size)
+            data = rb.sample(rb_state, sample_key).experience
             (
                 (qf1_state, qf2_state),
                 (qf1_loss_value, qf2_loss_value),
@@ -275,11 +289,11 @@ def main(args: DictConfig) -> None:
                 actor_state,
                 qf1_state,
                 qf2_state,
-                data.observations.numpy(),
-                data.actions.numpy(),
-                data.next_observations.numpy(),
-                data.rewards.flatten().numpy(),
-                data.dones.flatten().numpy(),
+                np.array(data["obs"]),
+                np.array(data["actions"]),
+                np.array(data["next_obs"]),
+                np.array(data["rewards"].flatten()),
+                np.array(data["dones"].flatten()),
                 key,
             )
 
@@ -288,7 +302,7 @@ def main(args: DictConfig) -> None:
                     actor_state,
                     qf1_state,
                     qf2_state,
-                    data.observations.numpy(),
+                    np.array(data["obs"]),
                 )
 
             if global_step % 100 == 0:
@@ -299,7 +313,11 @@ def main(args: DictConfig) -> None:
                 writer.add_scalar(
                     "losses/actor_loss", actor_loss_value.item(), global_step
                 )
-                print("SPS:", int(global_step / (time.time() - start_time)))
+                average_reward = test_actor_performance(
+                    envs, env_key, actor, actor_state
+                )
+                writer.add_scalar("test/average_reward", average_reward, global_step)
+                # print("SPS:", int(global_step / (time.time() - start_time)))
                 writer.add_scalar(
                     "charts/SPS",
                     int(global_step / (time.time() - start_time)),
@@ -319,32 +337,32 @@ def main(args: DictConfig) -> None:
                 )
             )
         print(f"model saved to {model_path}")
-        from cleanrl_utils.evals.td3_jax_eval import evaluate
+        # from cleanrl_utils.evals.td3_jax_eval import evaluate
 
-        episodic_returns = evaluate(
-            model_path,
-            make_env,
-            args.env_id,
-            eval_episodes=10,
-            run_name=f"{run_name}-eval",
-            Model=(Actor, QNetwork),
-            exploration_noise=args.exploration_noise,
-        )
-        for idx, episodic_return in enumerate(episodic_returns):
-            writer.add_scalar("eval/episodic_return", episodic_return, idx)
+        # episodic_returns = evaluate(
+        #     model_path,
+        #     make_env,
+        #     args.env_id,
+        #     eval_episodes=10,
+        #     run_name=f"{run_name}-eval",
+        #     Model=(Actor, QNetwork),
+        #     exploration_noise=args.exploration_noise,
+        # )
+        # for idx, episodic_return in enumerate(episodic_returns):
+        #     writer.add_scalar("eval/episodic_return", episodic_return, idx)
 
-        if args.upload_model:
-            from cleanrl_utils.huggingface import push_to_hub
+        # if args.upload_model:
+        #     from cleanrl_utils.huggingface import push_to_hub
 
-            repo_name = f"{args.env_id}-{args.exp_name}-seed{args.seed}"
-            repo_id = f"{args.hf_entity}/{repo_name}" if args.hf_entity else repo_name
-            push_to_hub(
-                args,
-                episodic_returns,
-                repo_id,
-                "TD3",
-                f"runs/{run_name}",
-                f"videos/{run_name}-eval",
-            )
-
+        #     repo_name = f"{args.env_id}-{args.exp_name}-seed{args.seed}"
+        #     repo_id = f"{args.hf_entity}/{repo_name}" if args.hf_entity else repo_name
+        #     push_to_hub(
+        #         args,
+        #         episodic_returns,
+        #         repo_id,
+        #         "TD3",
+        #         f"runs/{run_name}",
+        #         f"videos/{run_name}-eval",
+        #     )
+    # envs.close()
     writer.close()

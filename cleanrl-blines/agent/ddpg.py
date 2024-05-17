@@ -95,8 +95,8 @@ def main(args: DictConfig) -> None:
     action_high = action_space[0, 1]
     actor = Actor(
         action_dim=envs.action_size,
-        action_scale=(action_high - action_low) / 2,
-        action_bias=(action_high + action_low) / 2,
+        action_scale=(action_high - action_low) / 2.0,
+        action_bias=(action_high + action_low) / 2.0,
     )
     actor_state = TrainState.create(
         apply_fn=actor.apply,
@@ -173,16 +173,13 @@ def main(args: DictConfig) -> None:
         )
         return actor_state, qf1_state, actor_loss_value
 
-    start_time = time.time()
     envs.step = jit(envs.step)
+    start_time = time.time()
     # rb.add = jit(rb.add)
     for global_step in range(args.total_timesteps):
         key, loop_key, sample_key = jax.random.split(key, 3)
         # ALGO LOGIC: put action logic here
         if global_step < args.learning_starts:
-            # actions = np.array(
-            #     [envs.action_space.sample() for _ in range(args.num_envs)]
-            # )
             actions = jax.random.uniform(
                 loop_key,
                 shape=(args.num_envs, envs.action_size),

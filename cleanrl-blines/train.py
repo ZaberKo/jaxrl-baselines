@@ -3,7 +3,7 @@ from omegaconf import DictConfig, OmegaConf
 
 from agent.ddpg import main as ddpg
 
-@hydra.main(version_base=None, config_path="./config", config_name="ddpg")
+@hydra.main(version_base=None, config_path="./config", config_name="td3")
 def main(config: DictConfig):
     print(OmegaConf.to_yaml(config))
     ddpg(config)
