@@ -149,8 +149,8 @@ def main(args: DictConfig) -> None:
         )
         next_state_actions = jnp.clip(
             actor.apply(actor_state.target_params, next_observations) + clipped_noise,
-            envs.single_action_space.low,
-            envs.single_action_space.high,
+            envs.action_low,
+            envs.action_high,
         )
         qf1_next_target = qf.apply(
             qf1_state.target_params, next_observations, next_state_actions
