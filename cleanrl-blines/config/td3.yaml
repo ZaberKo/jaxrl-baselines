@@ -1,0 +1,23 @@
+exp_name: "td3_experiment"  # 这个字段通常从代码文件名动态获取，需要在实际使用时指定
+seed: 1
+track: false
+wandb_project_name: "cleanRL"
+wandb_entity: null
+capture_video: false
+save_model: false
+upload_model: false
+hf_entity: ""
+
+# Algorithm specific arguments
+env_name: "hopper"
+total_timesteps: 1000000
+learning_rate: 0.0003
+buffer_size: 1000000
+gamma: 0.99
+tau: 0.005
+batch_size: 256
+policy_noise: 0.2
+exploration_noise: 0.1
+learning_starts: 25000
+policy_frequency: 2
+noise_clip: 0.5
