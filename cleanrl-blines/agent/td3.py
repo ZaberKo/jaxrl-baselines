@@ -253,29 +253,33 @@ def main(args: DictConfig) -> None:
         )
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
-        if "final_info" in infos:
-            for info in infos["final_info"]:
-                print(
-                    f"global_step={global_step}, episodic_return={info['episode']['r']}"
-                )
-                writer.add_scalar(
-                    "charts/episodic_return", info["episode"]["r"], global_step
-                )
-                writer.add_scalar(
-                    "charts/episodic_length", info["episode"]["l"], global_step
-                )
-                break
+        # if "final_info" in infos:
+        #     for info in infos["final_info"]:
+        #         print(
+        #             f"global_step={global_step}, episodic_return={info['episode']['r']}"
+        #         )
+        #         writer.add_scalar(
+        #             "charts/episodic_return", info["episode"]["r"], global_step
+        #         )
+        #         writer.add_scalar(
+        #             "charts/episodic_length", info["episode"]["l"], global_step
+        #         )
+        #         break
 
         # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
-        real_next_obs = next_obs.copy()
-        for idx, trunc in enumerate(truncations):
-            if trunc:
-                real_next_obs[idx] = infos["final_observation"][idx]
+        # real_next_obs = next_obs.copy()
+        # for idx, trunc in enumerate(truncations):
+        #     if trunc:
+        #         real_next_obs[idx] = infos["final_observation"][idx]
         trajectory = get_rb_item_from_state(env_state, obs, actions)
         rb_state = rb.add(rb_state, trajectory)
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
-
+        
+        if terminations or truncations:
+            env_key, key = jax.random.split(key)
+            env_state = envs.reset(env_key)
+        
         # ALGO LOGIC: training.
         if global_step > args.learning_starts:
             # data = rb.sample(args.batch_size)

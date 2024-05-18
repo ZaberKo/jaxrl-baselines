@@ -211,18 +211,18 @@ def main(args: DictConfig) -> None:
         # next_obs, rewards, terminations, truncations, infos = envs.step(env_state, actions)
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
-        if "final_info" in infos:
-            for info in infos["final_info"]:
-                print(
-                    f"global_step={global_step}, episodic_return={info['episode']['r']}"
-                )
-                writer.add_scalar(
-                    "charts/episodic_return", info["episode"]["r"], global_step
-                )
-                writer.add_scalar(
-                    "charts/episodic_length", info["episode"]["l"], global_step
-                )
-                break
+        # if "final_info" in infos:
+        #     for info in infos["final_info"]:
+        #         print(
+        #             f"global_step={global_step}, episodic_return={info['episode']['r']}"
+        #         )
+        #         writer.add_scalar(
+        #             "charts/episodic_return", info["episode"]["r"], global_step
+        #         )
+        #         writer.add_scalar(
+        #             "charts/episodic_length", info["episode"]["l"], global_step
+        #         )
+        #         break
 
         # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
         # real_next_obs = next_obs.copy()
@@ -234,7 +234,9 @@ def main(args: DictConfig) -> None:
         rb_state = rb.add(rb_state, trajectory)
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
-
+        if terminations or truncations:
+            env_key, key = jax.random.split(key)
+            env_state = envs.reset(env_key)
         # ALGO LOGIC: training.
         if global_step > args.learning_starts:
             # data = rb.sample(args.batch_size)
