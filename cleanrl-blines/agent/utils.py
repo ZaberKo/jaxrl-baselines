@@ -72,5 +72,5 @@ def test_actor_performance(envs, env_key, actor, actor_state, num_episodes=10):
 
         total_rewards.append(episode_reward)
 
-    average_reward = jnp.mean(total_rewards)
+    average_reward =np.mean(np.array(total_rewards))
     return average_reward
