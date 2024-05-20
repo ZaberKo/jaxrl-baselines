@@ -64,7 +64,7 @@ class TrainState(TrainState):
     target_params: flax.core.FrozenDict
 
 
-def mian(args):
+def main(args):
     import stable_baselines3 as sb3
 
     if sb3.__version__ < "2.0":
