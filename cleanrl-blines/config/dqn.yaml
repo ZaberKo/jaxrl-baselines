@@ -9,7 +9,7 @@ upload_model: false
 hf_entity: ""
 
 # Algorithm specific arguments
-
+agent: dqn
 env_id: CartPole-v1
 total_timesteps: 500000
 learning_rate: 0.00025

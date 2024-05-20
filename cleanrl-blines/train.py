@@ -10,7 +10,19 @@ from agent.td3_brax import main as td3_brax
 @hydra.main(version_base=None, config_path="./config", config_name="dqn")
 def main(config: DictConfig):
     print(OmegaConf.to_yaml(config))
-    dqn(config)
+    agent_type = config.agent
+    if agent_type == "dqn":
+        dqn(config)
+    elif agent_type == "td3":
+        td3(config)
+    elif agent_type == "ddpg":
+        ddpg(config)
+    elif agent_type == "ddpg_brax":
+        ddpg_brax(config)
+    elif agent_type == "td3_brax":
+        td3_brax(config)
+    else:
+        raise ValueError("Unsupported agent type specified in the configuration!")
 
     # TRY NOT TO MODIFY: seeding
 
