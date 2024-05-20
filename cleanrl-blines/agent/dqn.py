@@ -64,7 +64,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
 """
         )
     assert args.num_envs == 1, "vectorized envs are not supported at the moment"
-    run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+    run_name = f"{args.env_name}__{args.exp_name}__{args.seed}__{int(time.time())}"
     if args.track:
         import wandb
 
@@ -93,7 +93,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
     # env setup
     envs = gym.vector.SyncVectorEnv(
         [
-            make_env(args.env_id, args.seed + i, i, args.capture_video, run_name)
+            make_env(args.env_name, args.seed + i, i, args.capture_video, run_name)
             for i in range(args.num_envs)
         ]
     )
