@@ -3,7 +3,8 @@ from jax import jit
 import jax.numpy as jnp
 import flashbax
 import numpy as np
-
+import brax
+import gymnasium as gym
 def get_rb_item(obs, action, reward, next_obs, done, truncation):
     item = dict(
         obs=obs,
@@ -74,3 +75,13 @@ def test_actor_performance(envs, env_key, actor, actor_state, num_episodes=10):
 
     average_reward =np.mean(np.array(total_rewards))
     return average_reward
+
+
+def box_stanslate(brax_space):
+    if isinstance(brax_space, brax.physics.config.Box):
+        # 创建一个Gymnasium的Box空间
+        low = brax_space.low
+        high = brax_space.high
+        return gym.spaces.Box(low=low, high=high, dtype=float)
+    else:
+        raise NotImplementedError("Unsupported space type")

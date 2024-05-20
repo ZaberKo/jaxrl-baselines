@@ -3,11 +3,12 @@ from omegaconf import DictConfig, OmegaConf
 
 from agent.ddpg import main as ddpg
 from agent.td3 import main as td3
+from agent.dqn import main as dqn
 
-@hydra.main(version_base=None, config_path="./config", config_name="td3")
+@hydra.main(version_base=None, config_path="./config", config_name="dqn")
 def main(config: DictConfig):
     print(OmegaConf.to_yaml(config))
-    td3(config)
+    dqn(config)
 
     # TRY NOT TO MODIFY: seeding
 
