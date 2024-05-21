@@ -1,8 +1,8 @@
-exp_name: "td3_experiment"  # 这个字段通常从代码文件名动态获取，需要在实际使用时指定
+exp_name: "td3-Hopper-v4"  # Adjust this name based on the actual experiment
 seed: 1
-track: false
-wandb_project_name: "cleanRL"
-wandb_entity: null
+track: true
+wandb_project_name: "JAXRL-baselines"
+wandb_entity: sustech-emi-org
 capture_video: false
 save_model: false
 upload_model: false
