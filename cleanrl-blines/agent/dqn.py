@@ -220,13 +220,14 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                         int(global_step / (time.time() - start_time)),
                         global_step,
                     )
-                     # Logging the metrics to WandB
-                    wandb.log({
-                        "losses/td_loss": jax.device_get(loss),
-                        "losses/q_values": jax.device_get(old_val).mean(),
-                        "charts/SPS": int(global_step / (time.time() - start_time)),
-                        "global_step": global_step
-                    })
+                    if args.track:
+                        # Logging the metrics to WandB
+                        wandb.log({
+                            "losses/td_loss": jax.device_get(loss),
+                            "losses/q_values": jax.device_get(old_val).mean(),
+                            "charts/SPS": int(global_step / (time.time() - start_time)),
+                            "global_step": global_step
+                        })
 
             # update target network
             if global_step % args.target_network_frequency == 0:

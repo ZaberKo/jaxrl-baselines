@@ -10,27 +10,32 @@ from agent.td3_brax import main as td3_brax
 
 @hydra.main(version_base=None, config_path="./config", config_name="dqn")
 def main(config: DictConfig):
-    config.seed = args.seed
+    seeds = [42, 123, 2023, 7, 1984, 2021, 31415, 999, 500, 1024]
     print(OmegaConf.to_yaml(config))
-    agent_type = config.agent
-    if agent_type == "dqn":
-        dqn(config)
-    elif agent_type == "td3":
-        td3(config)
-    elif agent_type == "ddpg":
-        ddpg(config)
-    elif agent_type == "ddpg_brax":
-        ddpg_brax(config)
-    elif agent_type == "td3_brax":
-        td3_brax(config)
-    else:
-        raise ValueError("Unsupported agent type specified in the configuration!")
+    for i in seeds:
+        config.seed = i
+        print("random seed={}".format(i))
+        agent_type = config.agent
+        if agent_type == "dqn":
+            dqn(config)
+        elif agent_type == "td3":
+            td3(config)
+        elif agent_type == "ddpg":
+            ddpg(config)
+        elif agent_type == "ddpg_brax":
+            ddpg_brax(config)
+        elif agent_type == "td3_brax":
+            td3_brax(config)
+        else:
+            raise ValueError("Unsupported agent type specified in the configuration!")
 
     # TRY NOT TO MODIFY: seeding
 
+def setup_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config-name", type=str, required=True, help="Configuration name")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    return parser
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    args = parser.parse_args()
     main()

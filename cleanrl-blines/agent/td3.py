@@ -330,12 +330,13 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                     int(global_step / (time.time() - start_time)),
                     global_step,
                 )
-                wandb.log({
-                        "losses/td_loss": jax.device_get(loss),
-                        "losses/q_values": jax.device_get(old_val).mean(),
-                        "charts/SPS": int(global_step / (time.time() - start_time)),
-                        "global_step": global_step
-                    })
+                if args.track:
+                    wandb.log({
+                            "losses/td_loss": jax.device_get(qf1_loss_value.item()),
+                            "losses/q_values": jax.device_get(qf1_a_values.item()).mean(),
+                            "charts/SPS": int(global_step / (time.time() - start_time)),
+                            "global_step": global_step
+                        })
 
     if args.save_model:
         model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
