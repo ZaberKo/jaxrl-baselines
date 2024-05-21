@@ -75,7 +75,7 @@ def main(args):
 poetry run pip install "stable_baselines3==2.0.0a1"
 """
         )
-    run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+    run_name = f"cleanrl__{args.env_id}__{args.exp_name}__{args.seed}"
     if args.track:
         import wandb
 
@@ -281,6 +281,12 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                     int(global_step / (time.time() - start_time)),
                     global_step,
                 )
+                wandb.log({
+                        "losses/td_loss": jax.device_get(loss),
+                        "losses/q_values": jax.device_get(old_val).mean(),
+                        "charts/SPS": int(global_step / (time.time() - start_time)),
+                        "global_step": global_step
+                    })
 
     if args.save_model:
         model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
