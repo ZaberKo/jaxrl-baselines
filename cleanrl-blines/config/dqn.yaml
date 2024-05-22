@@ -1,6 +1,6 @@
 exp_name: "dqn-CartPole-v1"  # Adjust this name based on the actual experiment
 seed: 31415
-track: false
+track: true
 wandb_project_name: "JAXRL-baselines"
 wandb_entity: sustech-emi-org
 capture_video: false
