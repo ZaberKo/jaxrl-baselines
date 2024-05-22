@@ -84,13 +84,13 @@ poetry run pip install "stable_baselines3==2.0.0a1"
             save_code=True,
             mode="offline"
         )
-    else:
-        writer = SummaryWriter(f"runs/{run_name}")
-        writer.add_text(
-            "hyperparameters",
-            "|param|value|\n|-|-|\n%s"
-            % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
-        )
+
+    writer = SummaryWriter(f"runs/{run_name}")
+    writer.add_text(
+        "hyperparameters",
+        "|param|value|\n|-|-|\n%s"
+        % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
+    )
 
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
@@ -212,13 +212,12 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                     print(
                         f"global_step={global_step}, episodic_return={info['episode']['r']}"
                     )
-                    if not args.track:
-                        writer.add_scalar(
-                            "charts/episodic_return", info["episode"]["r"], global_step
-                        )
-                        writer.add_scalar(
-                            "charts/episodic_length", info["episode"]["l"], global_step
-                        )
+                    writer.add_scalar(
+                        "charts/episodic_return", info["episode"]["r"], global_step
+                    )
+                    writer.add_scalar(
+                        "charts/episodic_length", info["episode"]["l"], global_step
+                    )
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
         real_next_obs = next_obs.copy()
@@ -245,26 +244,17 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                 data.dones.numpy(),
             )
 
-            if global_step % 100 == 0:
-                if args.track:
-                    wandb.log(
-                        {
-                            "loss": jax.device_get(loss),
-                            "q_values": jax.device_get(old_val.mean()),
-                        },
-                        step=global_step,
-                    )
-                else:
-                    writer.add_scalar("losses/loss", jax.device_get(loss), global_step)
-                    writer.add_scalar(
-                        "losses/q_values", jax.device_get(old_val.mean()), global_step
-                    )
-                    print("SPS:", int(global_step / (time.time() - start_time)))
-                    writer.add_scalar(
-                        "charts/SPS",
-                        int(global_step / (time.time() - start_time)),
-                        global_step,
-                    )
+            if global_step % 100 == 0:        
+                writer.add_scalar("losses/loss", jax.device_get(loss), global_step)
+                writer.add_scalar(
+                    "losses/q_values", jax.device_get(old_val.mean()), global_step
+                )
+                print("SPS:", int(global_step / (time.time() - start_time)))
+                writer.add_scalar(
+                    "charts/SPS",
+                    int(global_step / (time.time() - start_time)),
+                    global_step,
+                )
 
             # update target network
             if global_step % args.target_network_frequency == 0:
@@ -312,7 +302,6 @@ poetry run pip install "stable_baselines3==2.0.0a1"
             )
 
     envs.close()
+    writer.close()
     if args.track:
         wandb.finish()
-    else:
-        writer.close()
