@@ -86,6 +86,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
             name=run_name,
             monitor_gym=True,
             save_code=True,
+            mode="offline"
         )
     else:
         writer = SummaryWriter(f"runs/{run_name}")

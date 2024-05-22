@@ -1,0 +1,365 @@
+exp_name: dqn-CartPole-v1
+seed: 31415
+track: true
+wandb_project_name: JAXRL-baselines
+wandb_entity: sustech-emi-org
+capture_video: false
+save_model: false
+upload_model: false
+hf_entity: ''
+agent: dqn
+env_id: CartPole-v1
+total_timesteps: 500000
+learning_rate: 0.00025
+num_envs: 1
+buffer_size: 10000
+gamma: 0.99
+tau: 1.0
+target_network_frequency: 500
+batch_size: 128
+start_e: 1.0
+end_e: 0.05
+exploration_fraction: 0.5
+learning_starts: 10000
+train_frequency: 10
+
+random seed=42
+[2024-05-22 15:49:18,839][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5ea5d144c0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:18,840][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5ea5d14c40>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:18,840][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5ea5d14b80>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:18,842][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5ea5d16c50>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:18,843][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5ea5d16dd0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:18,843][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5ea5d16f80>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/train.py", line 73, in <module>
+    test_main()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 223, in run_and_report
+    raise ex
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/hydra.py", line 132, in run
+    _ = ret.return_value
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/core/utils.py", line 260, in return_value
+    raise self._return_value
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/train.py", line 26, in test_main
+    dqn(config)
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/agent/dqn.py", line 71, in main
+    wandb.init(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 1178, in init
+    wandb._sentry.reraise(e)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/analytics/sentry.py", line 155, in reraise
+    raise exc.with_traceback(sys.exc_info()[2])
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 1164, in init
+    return wi.init()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 627, in init
+    run = Run(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 594, in __init__
+    self._init(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 709, in _init
+    self._config._update(config, ignore_locked=True)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 177, in _update
+    sanitized = self._sanitize_dict(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 264, in _sanitize_dict
+    k, v = self._sanitize(k, v, allow_val_change)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 282, in _sanitize
+    val = json_friendly_val(val)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/util.py", line 671, in json_friendly_val
+    converted = asdict(val)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1238, in asdict
+    return _asdict_inner(obj, dict_factory)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1245, in _asdict_inner
+    value = _asdict_inner(getattr(obj, f.name), dict_factory)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1275, in _asdict_inner
+    return type(obj)((_asdict_inner(k, dict_factory),
+TypeError: first argument must be callable or None
+[2024-05-22 15:49:20,886][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5f8bcc9180>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:20,887][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5f8bcc9f00>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:20,888][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5f8bcca110>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:20,890][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5f8bccbfd0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:20,890][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5f8bcc8e80>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:20,891][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f5f8bcc90f0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+exp_name: ddpg-Hopper-v4
+seed: 42
+track: true
+wandb_project_name: JAXRL-baselines
+wandb_entity: sustech-emi-org
+capture_video: false
+save_model: false
+upload_model: false
+hf_entity: ''
+agent: ddpg
+env_id: Hopper-v4
+env_name: hopper
+total_timesteps: 1000000
+learning_rate: 0.0003
+buffer_size: 1000000
+gamma: 0.99
+tau: 0.005
+batch_size: 256
+exploration_noise: 0.1
+learning_starts: 25000
+policy_frequency: 2
+noise_clip: 0.5
+num_envs: 1
+
+random seed=42
+[2024-05-22 15:49:26,971][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe0e3db4460>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:26,972][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe0e3db4c10>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:26,972][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe0e3db4ac0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:26,974][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe0e3db6a40>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:26,975][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe0e3db6bc0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:26,975][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe0e3db6d70>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/train.py", line 73, in <module>
+    test_main()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 223, in run_and_report
+    raise ex
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/hydra.py", line 132, in run
+    _ = ret.return_value
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/core/utils.py", line 260, in return_value
+    raise self._return_value
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/train.py", line 30, in test_main
+    ddpg(config)
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/agent/ddpg.py", line 81, in main
+    wandb.init(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 1178, in init
+    wandb._sentry.reraise(e)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/analytics/sentry.py", line 155, in reraise
+    raise exc.with_traceback(sys.exc_info()[2])
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 1164, in init
+    return wi.init()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 627, in init
+    run = Run(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 594, in __init__
+    self._init(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 709, in _init
+    self._config._update(config, ignore_locked=True)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 177, in _update
+    sanitized = self._sanitize_dict(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 264, in _sanitize_dict
+    k, v = self._sanitize(k, v, allow_val_change)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 282, in _sanitize
+    val = json_friendly_val(val)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/util.py", line 671, in json_friendly_val
+    converted = asdict(val)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1238, in asdict
+    return _asdict_inner(obj, dict_factory)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1245, in _asdict_inner
+    value = _asdict_inner(getattr(obj, f.name), dict_factory)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1275, in _asdict_inner
+    return type(obj)((_asdict_inner(k, dict_factory),
+TypeError: first argument must be callable or None
+[2024-05-22 15:49:29,037][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe1c9d5d120>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:29,039][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe1c9d5dea0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:29,039][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe1c9d5e0b0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:29,041][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe1c9d5ff70>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:29,042][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe1c9d5ce50>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:29,043][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7fe1c9d5d0f0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+exp_name: td3-Hopper-v4
+seed: 1024
+track: true
+wandb_project_name: JAXRL-baselines
+wandb_entity: sustech-emi-org
+capture_video: false
+save_model: false
+upload_model: false
+hf_entity: ''
+agent: td3
+env_id: Hopper-v4
+env_name: hopper
+total_timesteps: 1000000
+learning_rate: 0.0003
+buffer_size: 1000000
+gamma: 0.99
+tau: 0.005
+batch_size: 256
+policy_noise: 0.2
+exploration_noise: 0.1
+learning_starts: 25000
+policy_frequency: 2
+noise_clip: 0.5
+num_envs: 1
+
+random seed=42
+[2024-05-22 15:49:34,645][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f99c9aec490>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:34,646][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f99c9aecc10>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:34,647][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f99c9aecb50>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:34,648][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f99c9aeec20>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:34,649][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f99c9aeeda0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:34,650][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f99c9aeef50>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/train.py", line 73, in <module>
+    test_main()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 223, in run_and_report
+    raise ex
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/hydra.py", line 132, in run
+    _ = ret.return_value
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/core/utils.py", line 260, in return_value
+    raise self._return_value
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/train.py", line 28, in test_main
+    td3(config)
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/agent/td3.py", line 80, in main
+    wandb.init(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 1178, in init
+    wandb._sentry.reraise(e)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/analytics/sentry.py", line 155, in reraise
+    raise exc.with_traceback(sys.exc_info()[2])
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 1164, in init
+    return wi.init()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 627, in init
+    run = Run(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 594, in __init__
+    self._init(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 709, in _init
+    self._config._update(config, ignore_locked=True)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 177, in _update
+    sanitized = self._sanitize_dict(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 264, in _sanitize_dict
+    k, v = self._sanitize(k, v, allow_val_change)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 282, in _sanitize
+    val = json_friendly_val(val)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/util.py", line 671, in json_friendly_val
+    converted = asdict(val)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1238, in asdict
+    return _asdict_inner(obj, dict_factory)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1245, in _asdict_inner
+    value = _asdict_inner(getattr(obj, f.name), dict_factory)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1275, in _asdict_inner
+    return type(obj)((_asdict_inner(k, dict_factory),
+TypeError: first argument must be callable or None
+[2024-05-22 15:49:36,716][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f9aafa59180>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:36,717][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f9aafa59f00>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:36,718][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f9aafa5a110>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:36,719][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f9aafa5bfd0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:36,720][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f9aafa58e80>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:36,721][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f9aafa590f0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+exp_name: c51-CartPole-v1
+seed: 1
+track: true
+wandb_project_name: JAXRL-baselines
+wandb_entity: sustech-emi-org
+capture_video: false
+save_model: false
+upload_model: false
+hf_entity: ''
+agent: c51
+env_id: CartPole-v1
+total_timesteps: 500000
+learning_rate: 0.00025
+num_envs: 1
+n_atoms: 101
+v_min: -100
+v_max: 100
+buffer_size: 10000
+gamma: 0.99
+target_network_frequency: 500
+batch_size: 128
+start_e: 1
+end_e: 0.05
+exploration_fraction: 0.5
+learning_starts: 10000
+train_frequency: 10
+
+random seed=42
+[2024-05-22 15:49:41,990][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f813b168940>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:41,990][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f813b1690c0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:41,991][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f813b169000>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:41,993][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f813b16b0d0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:41,994][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f813b16b250>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:41,994][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f813b16b400>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/train.py", line 73, in <module>
+    test_main()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 223, in run_and_report
+    raise ex
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/_internal/hydra.py", line 132, in run
+    _ = ret.return_value
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/core/utils.py", line 260, in return_value
+    raise self._return_value
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/train.py", line 32, in test_main
+    c51(config)
+  File "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/agent/c51.py", line 77, in main
+    wandb.init(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 1178, in init
+    wandb._sentry.reraise(e)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/analytics/sentry.py", line 155, in reraise
+    raise exc.with_traceback(sys.exc_info()[2])
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 1164, in init
+    return wi.init()
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 627, in init
+    run = Run(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 594, in __init__
+    self._init(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 709, in _init
+    self._config._update(config, ignore_locked=True)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 177, in _update
+    sanitized = self._sanitize_dict(
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 264, in _sanitize_dict
+    k, v = self._sanitize(k, v, allow_val_change)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/sdk/wandb_config.py", line 282, in _sanitize
+    val = json_friendly_val(val)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/site-packages/wandb/util.py", line 671, in json_friendly_val
+    converted = asdict(val)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1238, in asdict
+    return _asdict_inner(obj, dict_factory)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1245, in _asdict_inner
+    value = _asdict_inner(getattr(obj, f.name), dict_factory)
+  File "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/lib/python3.10/dataclasses.py", line 1275, in _asdict_inner
+    return type(obj)((_asdict_inner(k, dict_factory),
+TypeError: first argument must be callable or None
+[2024-05-22 15:49:44,063][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f82210d9180>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:44,064][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f82210d9f00>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:44,065][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f82210da110>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:44,066][urllib3.connectionpool][WARNING] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f82210dbfd0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:44,067][urllib3.connectionpool][WARNING] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f82210d8e80>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
+[2024-05-22 15:49:44,068][urllib3.connectionpool][WARNING] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7f82210d90f0>: Failed to resolve 'o151352.ingest.sentry.io' ([Errno -2] Name or service not known)")': /api/4504800232407040/envelope/
