@@ -17,7 +17,6 @@ from stable_baselines3.common.buffers import ReplayBuffer
 from tensorboardX import SummaryWriter
 
 
-
 def make_env(env_id, seed, idx, capture_video, run_name):
     def thunk():
         if capture_video and idx == 0:
@@ -87,13 +86,15 @@ poetry run pip install "stable_baselines3==2.0.0a1"
             name=run_name,
             monitor_gym=True,
             save_code=True,
+            model="offline"
         )
-    writer = SummaryWriter(f"runs/{run_name}")
-    writer.add_text(
-        "hyperparameters",
-        "|param|value|\n|-|-|\n%s"
-        % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
-    )
+    else:
+        writer = SummaryWriter(f"runs/{run_name}")
+        writer.add_text(
+            "hyperparameters",
+            "|param|value|\n|-|-|\n%s"
+            % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
+        )
 
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
@@ -231,12 +232,13 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                 print(
                     f"global_step={global_step}, episodic_return={info['episode']['r']}"
                 )
-                writer.add_scalar(
-                    "charts/episodic_return", info["episode"]["r"], global_step
-                )
-                writer.add_scalar(
-                    "charts/episodic_length", info["episode"]["l"], global_step
-                )
+                if not args.track:
+                    writer.add_scalar(
+                        "charts/episodic_return", info["episode"]["r"], global_step
+                    )
+                    writer.add_scalar(
+                        "charts/episodic_length", info["episode"]["l"], global_step
+                    )
                 break
 
         # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
@@ -270,24 +272,27 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                 )
 
             if global_step % 100 == 0:
-                writer.add_scalar("losses/qf1_loss", qf1_loss_value.item(), global_step)
-                writer.add_scalar("losses/qf1_values", qf1_a_values.item(), global_step)
-                writer.add_scalar(
-                    "losses/actor_loss", actor_loss_value.item(), global_step
-                )
-                print("SPS:", int(global_step / (time.time() - start_time)))
-                writer.add_scalar(
-                    "charts/SPS",
-                    int(global_step / (time.time() - start_time)),
-                    global_step,
-                )
                 if args.track:
-                    wandb.log({
-                            "losses/td_loss": jax.device_get(qf1_loss_value.item()),
-                            "losses/q_values": jax.device_get(qf1_a_values.item()).mean(),
-                            "charts/SPS": int(global_step / (time.time() - start_time)),
-                            "global_step": global_step
-                        })
+                    wandb.log(
+                        {
+                            "q_loss": qf1_loss_value.item(),
+                            "q_values": qf1_a_values.item(),
+                            "actor_loss": actor_loss_value.item(),
+                        },
+                        step=global_step,
+                    )
+                else:
+                    writer.add_scalar("losses/qf1_loss", qf1_loss_value.item(), global_step)
+                    writer.add_scalar("losses/qf1_values", qf1_a_values.item(), global_step)
+                    writer.add_scalar(
+                        "losses/actor_loss", actor_loss_value.item(), global_step
+                    )
+                    print("SPS:", int(global_step / (time.time() - start_time)))
+                    writer.add_scalar(
+                        "charts/SPS",
+                        int(global_step / (time.time() - start_time)),
+                        global_step,
+                    )
 
     if args.save_model:
         model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
@@ -330,4 +335,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
             )
 
     envs.close()
-    writer.close()
+    if args.track:
+        wandb.finish()
+    else:
+        writer.close()
