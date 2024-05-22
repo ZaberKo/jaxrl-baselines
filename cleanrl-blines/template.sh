@@ -10,7 +10,8 @@
 #SBATCH --mail-user=lh_cse@163.com
 
 # 设置 WandB API key
-# export WANDB_API_KEY="5341b8b0aa7a3635f2ea7c71e238ce16b52dfd9b" 
+export WANDB_API_KEY="5341b8b0aa7a3635f2ea7c71e238ce16b52dfd9b" 
+export WANDB_MODE=offline
 
 python train.py --config-name dqn
 
