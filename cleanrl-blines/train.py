@@ -7,9 +7,10 @@ from agent.td3 import main as td3
 from agent.dqn import main as dqn
 from agent.ddpg_brax import main as ddpg_brax
 from agent.td3_brax import main as td3_brax
+from agent.c51 import main as c51
 
 @hydra.main(version_base=None, config_path="./config", config_name="dqn")
-def main(config: DictConfig):
+def test_main(config: DictConfig):
     seeds = [42, 123, 2023, 7, 1984, 2021, 31415, 999, 500, 1024]
     print(OmegaConf.to_yaml(config))
     for i in seeds:
@@ -22,6 +23,8 @@ def main(config: DictConfig):
             td3(config)
         elif agent_type == "ddpg":
             ddpg(config)
+        elif agent_type == 'c51':
+            c51(config)
         elif agent_type == "ddpg_brax":
             ddpg_brax(config)
         elif agent_type == "td3_brax":
@@ -31,6 +34,28 @@ def main(config: DictConfig):
 
     # TRY NOT TO MODIFY: seeding
 
+
+@hydra.main(version_base=None, config_path="./config", config_name="c51")
+def main(config: DictConfig):
+    print(OmegaConf.to_yaml(config))
+
+    agent_type = config.agent
+    if agent_type == "dqn":
+        dqn(config)
+    elif agent_type == "td3":
+        td3(config)
+    elif agent_type == "ddpg":
+        ddpg(config)
+    elif agent_type == 'c51':
+        c51(config)
+    elif agent_type == "ddpg_brax":
+        ddpg_brax(config)
+    elif agent_type == "td3_brax":
+        td3_brax(config)
+    else:
+        raise ValueError("Unsupported agent type specified in the configuration!")
+
+
 def setup_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config-name", type=str, required=True, help="Configuration name")
@@ -39,3 +64,4 @@ def setup_parser():
 
 if __name__ == "__main__":
     main()
+    # test_main()

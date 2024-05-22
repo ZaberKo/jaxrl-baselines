@@ -233,3 +233,6 @@ multirun/
 brax-blines/configs/*.json
 
 *template.sh
+
+test_*.py
+test_*.yaml
