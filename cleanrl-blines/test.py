@@ -1,16 +1,25 @@
-import brax
-from brax import envs
-# import gymnasium as gym
-from brax.envs.wrappers import gym as gym_wrapper
+import hydra
+from omegaconf import DictConfig, OmegaConf
+import os
+import wandb
 
-env_name = 'hopper'
-num_envs = 1
-episode_length = 1
+os.environ["WANDB_API_KEY"] = "5341b8b0aa7a3635f2ea7c71e238ce16b52dfd9b"
+os.environ["WANDB_MODE"] = "offline"
+os.environ['HYDRA_FULL_ERROR'] = '1'
 
-env = envs.create(env_name, batch_size=num_envs, episode_length=episode_length)
-env = gym_wrapper.VectorGymWrapper(env)
-a = env.action_space
-
-env.reset()
-# action = torch.zeros(env.action_space.shape).to(device)
-# env.step(action)
+@hydra.main(version_base=None, config_path="./config", config_name="c51")
+def main(config: DictConfig):
+    run_name = "test"
+    # print(OmegaConf.to_yaml(config))
+    wandb.init(
+        project=config.wandb_project_name,
+        entity=config.wandb_entity,
+        name=run_name,
+        config=OmegaConf.to_container(config, resolve=True),
+        mode="offline"
+    )
+    wandb.log({"test":0})
+    wandb.finish()
+    print("finish")
+if __name__ == "__main__":
+    main()

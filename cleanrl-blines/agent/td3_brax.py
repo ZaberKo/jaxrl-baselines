@@ -20,6 +20,7 @@ from agent.utils import (
     replayer_buffer,
     test_actor_performance,
 )
+from omegaconf import DictConfig, OmegaConf
 
 # ALGO LOGIC: initialize agent here:
 class QNetwork(nn.Module):
@@ -67,7 +68,7 @@ def main(args: DictConfig) -> None:
             project=args.wandb_project_name,
             entity=args.wandb_entity,
             sync_tensorboard=True,
-            config=vars(args),
+            config=OmegaConf.to_container(args, resolve=True),
             name=run_name,
             monitor_gym=True,
             save_code=True,

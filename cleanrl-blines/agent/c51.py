@@ -14,7 +14,7 @@ import optax
 from flax.training.train_state import TrainState
 from stable_baselines3.common.buffers import ReplayBuffer
 from tensorboardX import SummaryWriter
-
+from omegaconf import DictConfig, OmegaConf
 
 def make_env(env_id, seed, idx, capture_video, run_name):
     def thunk():
@@ -78,7 +78,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
             project=args.wandb_project_name,
             entity=args.wandb_entity,
             sync_tensorboard=True,
-            config=vars(args),
+            config=OmegaConf.to_container(args, resolve=True),
             name=run_name,
             monitor_gym=True,
             save_code=True,

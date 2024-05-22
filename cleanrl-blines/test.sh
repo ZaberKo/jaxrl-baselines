@@ -13,10 +13,4 @@
 export WANDB_API_KEY="5341b8b0aa7a3635f2ea7c71e238ce16b52dfd9b" 
 export WANDB_MODE="offline"
 
-python train.py --config-name dqn
-
-python train.py --config-name ddpg
-
-python train.py --config-name td3
-
-python train.py --config-name c51
+python test.py --config-name base
