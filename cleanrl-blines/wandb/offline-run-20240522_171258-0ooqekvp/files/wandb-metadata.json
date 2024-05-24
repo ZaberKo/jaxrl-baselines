@@ -1,0 +1,331 @@
+{
+    "os": "Linux-4.18.0-348.23.1.el8_5.x86_64-x86_64-with-glibc2.28",
+    "python": "3.10.14",
+    "heartbeatAt": "2024-05-22T09:12:59.451106",
+    "startedAt": "2024-05-22T09:12:58.448371",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--config-name",
+        "dqn"
+    ],
+    "state": "running",
+    "program": "/home/chengr_lab/cse12132340/jaxrl-baselines/cleanrl-blines/train.py",
+    "codePathLocal": "train.py",
+    "codePath": "cleanrl-blines/train.py",
+    "git": {
+        "remote": "git@github.com:LiHao-MS/jaxrl-baselines.git",
+        "commit": "729a2b4a2ab536027229643b41e6ae31068a367c"
+    },
+    "email": "lh_cse@163.com",
+    "root": "/home/chengr_lab/cse12132340/jaxrl-baselines",
+    "host": "gpu001",
+    "username": "cse12132340",
+    "executable": "/home/chengr_lab/cse12132340/miniconda3/envs/jaxrl-baselines/bin/python",
+    "cpu_count": 56,
+    "cpu_count_logical": 56,
+    "cpu_freq": {
+        "current": 2600.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2600.0,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 295.85156631469727,
+            "used": 6.932331085205078
+        }
+    },
+    "gpu": "NVIDIA GeForce RTX 2080 Ti",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 2080 Ti",
+            "memory_total": 11811160064
+        }
+    ],
+    "memory": {
+        "total": 251.6369285583496
+    }
+}
