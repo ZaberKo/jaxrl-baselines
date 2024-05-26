@@ -235,3 +235,5 @@ brax-blines/configs/*.json
 
 test_*.py
 test_*.yaml
+**/wandb/
+**/run/
