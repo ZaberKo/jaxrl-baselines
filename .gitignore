@@ -239,3 +239,4 @@ test_*.yaml
 **/runs/
 **/test.py
 **/*.out
+**/*.sh
