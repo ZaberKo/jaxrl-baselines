@@ -64,7 +64,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
 """
         )
     assert args.num_envs == 1, "vectorized envs are not supported at the moment"
-    run_name = f"cleanrl__{args.env_id}__{args.exp_name}__{args.seed}"
+    run_name = f"cleanrl_{args.exp_name}_{args.seed}"
     if args.track:
         import wandb
 
