@@ -237,3 +237,5 @@ test_*.py
 test_*.yaml
 **/wandb/
 **/runs/
+**/test.py
+**/*.out
