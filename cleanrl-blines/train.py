@@ -10,9 +10,7 @@ from agent.ddpg_brax import main as ddpg_brax
 from agent.td3_brax import main as td3_brax
 from agent.c51 import main as c51
 
-os.environ["WANDB_API_KEY"] = "5341b8b0aa7a3635f2ea7c71e238ce16b52dfd9b"
 os.environ["WANDB_MODE"] = "offline"
-os.environ['HYDRA_FULL_ERROR'] = '1'
 
 @hydra.main(version_base=None, config_path="./config", config_name="dqn")
 def test_main(config: DictConfig):
