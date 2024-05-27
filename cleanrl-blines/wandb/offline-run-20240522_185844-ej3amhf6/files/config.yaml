@@ -1,0 +1,107 @@
+wandb_version: 1
+
+exp_name:
+  desc: null
+  value: ddpg-Hopper-v4
+seed:
+  desc: null
+  value: 114514
+track:
+  desc: null
+  value: true
+wandb_project_name:
+  desc: null
+  value: JAXRL-baselines
+wandb_entity:
+  desc: null
+  value: sustech-emi-org
+capture_video:
+  desc: null
+  value: false
+save_model:
+  desc: null
+  value: false
+upload_model:
+  desc: null
+  value: false
+hf_entity:
+  desc: null
+  value: ''
+agent:
+  desc: null
+  value: ddpg
+env_id:
+  desc: null
+  value: Hopper-v4
+env_name:
+  desc: null
+  value: hopper
+total_timesteps:
+  desc: null
+  value: 1000000
+learning_rate:
+  desc: null
+  value: 0.0003
+buffer_size:
+  desc: null
+  value: 1000000
+gamma:
+  desc: null
+  value: 0.99
+tau:
+  desc: null
+  value: 0.005
+batch_size:
+  desc: null
+  value: 256
+exploration_noise:
+  desc: null
+  value: 0.1
+learning_starts:
+  desc: null
+  value: 25000
+policy_frequency:
+  desc: null
+  value: 2
+noise_clip:
+  desc: null
+  value: 0.5
+num_envs:
+  desc: null
+  value: 1
+_wandb:
+  desc: null
+  value:
+    code_path: code/cleanrl-blines/train.py
+    python_version: 3.10.14
+    cli_version: 0.17.0
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1716375524
+    t:
+      1:
+      - 1
+      - 12
+      - 45
+      - 50
+      - 55
+      2:
+      - 1
+      - 12
+      - 45
+      - 50
+      - 55
+      3:
+      - 2
+      - 4
+      - 13
+      - 16
+      - 23
+      - 34
+      - 42
+      4: 3.10.14
+      5: 0.17.0
+      8:
+      - 5
+      13: linux-x86_64

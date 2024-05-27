@@ -1,1 +1,1 @@
-{"_wandb": {"runtime": 2050}}
+{"global_step": 999900, "_timestamp": 1716379632.6476793, "_runtime": 2050.837525367737, "_step": 14181, "charts/episodic_return": 1051.986083984375, "charts/episodic_length": 297.0, "losses/qf1_loss": 31.44583511352539, "losses/qf1_values": 375.28533935546875, "losses/actor_loss": -377.00341796875, "charts/SPS": 489.0, "_wandb": {"runtime": 2050}}
