@@ -1,6 +1,6 @@
-exp_name: "td3-Hopper-v4"  # Adjust this name based on the actual experiment
+exp_name: "td3-Hopper"  # Adjust this name based on the actual experiment
 seed: 1024
-track: false
+track: true
 wandb_project_name: "JAXRL-baselines"
 wandb_entity: sustech-emi-org
 capture_video: false
