@@ -85,3 +85,25 @@ def box_stanslate(brax_space):
         return gym.spaces.Box(low=low, high=high, dtype=float)
     else:
         raise NotImplementedError("Unsupported space type")
+
+
+class AttrDict:
+    def __init__(self, d=None):
+        if d is None:
+            d = {}
+        # 保证所有传入的字典项都可以通过属性访问
+        self.__dict__.update(d)
+
+    def __getattr__(self, key):
+        # 如果试图访问的属性不存在，抛出AttributeError
+        if key not in self.__dict__:
+            raise AttributeError(f"No such attribute: {key}")
+        return self.__dict__[key]
+
+    def __setattr__(self, key, value):
+        # 允许属性赋值
+        self.__dict__[key] = value
+
+    def __repr__(self):
+        # 定制对象的打印信息，方便调试
+        return str(self.__ddict__)

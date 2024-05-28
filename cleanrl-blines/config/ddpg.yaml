@@ -1,6 +1,6 @@
 exp_name: "ddpg-Hopper-v4"  # Adjust this name based on the actual experiment
 seed: 42
-track: true
+track: false
 wandb_project_name: JAXRL-baselines
 wandb_entity: sustech-emi-org
 capture_video: false
@@ -10,7 +10,7 @@ hf_entity: ""
 
 # Algorithm specific arguments
 agent: ddpg
-env_id: Hopper-v4
+env_id: hopper
 env_name: hopper
 total_timesteps: 1000000
 learning_rate: 0.0003

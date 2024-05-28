@@ -6,29 +6,17 @@ from dataclasses import dataclass
 
 import flax
 import flax.linen as nn
-import gymnasium as gym
+# import gymnasium as gym
 import jax
 import jax.numpy as jnp
 import numpy as np
 import optax
 from flax.training.train_state import TrainState
-from stable_baselines3.common.buffers import ReplayBuffer
+from agent.wrapper import make_env, ReplayBuffer
+from agent.utils import AttrDict
+# from stable_baselines3.common.buffers import ReplayBuffer
 from tensorboardX import SummaryWriter
 from omegaconf import DictConfig, OmegaConf
-
-
-def make_env(env_id, seed, idx, capture_video, run_name):
-    def thunk():
-        if capture_video and idx == 0:
-            env = gym.make(env_id, render_mode="rgb_array")
-            env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
-        else:
-            env = gym.make(env_id)
-        env = gym.wrappers.RecordEpisodeStatistics(env)
-        env.action_space.seed(seed)
-        return env
-
-    return thunk
 
 
 # ALGO LOGIC: initialize agent here:
@@ -103,23 +91,26 @@ poetry run pip install "stable_baselines3==2.0.0a1"
     key, actor_key, qf1_key, qf2_key = jax.random.split(key, 4)
 
     # env setup
-    envs = gym.vector.SyncVectorEnv(
-        [make_env(args.env_id, args.seed, 0, args.capture_video, run_name)]
+    # envs = gym.vector.SyncVectorEnv(
+    #     [make_env(args.env_id, args.seed, 0, args.capture_video, run_name)]
+    # )
+    envs = make_env(
+        args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs
     )
-    assert isinstance(
-        envs.single_action_space, gym.spaces.Box
-    ), "only continuous action space is supported"
+    # assert isinstance(
+    #     envs.single_action_space, gym.spaces.Box
+    # ), "only continuous action space is supported"
 
-    max_action = float(envs.single_action_space.high[0])
-    envs.single_observation_space.dtype = np.float32
-    rb = ReplayBuffer(
-        args.buffer_size,
-        envs.single_observation_space,
-        envs.single_action_space,
-        device="cpu",
-        handle_timeout_termination=False,
-    )
-
+    max_action = float(envs.single_action_space.high[0,0])
+    # envs.single_observation_space.dtype = np.float32
+    # rb = ReplayBuffer(
+    #     args.buffer_size,
+    #     envs.single_observation_space,
+    #     envs.single_action_space,
+    #     device="cpu",
+    #     handle_timeout_termination=False,
+    # )
+    rb = ReplayBuffer(args.buffer_size, envs, args.batch_size, key)
     # TRY NOT TO MODIFY: start the game
     obs, _ = envs.reset(seed=args.seed)
 
@@ -281,11 +272,11 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                 break
 
         # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
-        real_next_obs = next_obs.copy()
-        for idx, trunc in enumerate(truncations):
-            if trunc:
-                real_next_obs[idx] = infos["final_observation"][idx]
-        rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
+        # real_next_obs = next_obs.copy()
+        # for idx, trunc in enumerate(truncations):
+        #     if trunc:
+        #         real_next_obs[idx] = infos["final_observation"][idx]
+        rb.add(obs, next_obs, actions, rewards, terminations, infos)
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
@@ -293,7 +284,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         # ALGO LOGIC: training.
         if global_step > args.learning_starts:
             data = rb.sample(args.batch_size)
-
+            data = AttrDict(data)
             (
                 (qf1_state, qf2_state),
                 (qf1_loss_value, qf2_loss_value),
@@ -303,11 +294,11 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                 actor_state,
                 qf1_state,
                 qf2_state,
-                data.observations.numpy(),
-                data.actions.numpy(),
-                data.next_observations.numpy(),
-                data.rewards.flatten().numpy(),
-                data.dones.flatten().numpy(),
+                data.observations,
+                data.actions,
+                data.next_observations,
+                data.rewards.flatten(),
+                data.dones.flatten(),
                 key,
             )
 
@@ -316,7 +307,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                     actor_state,
                     qf1_state,
                     qf2_state,
-                    data.observations.numpy(),
+                    data.observations,
                 )
 
             if global_step % 100 == 0:
@@ -379,4 +370,3 @@ poetry run pip install "stable_baselines3==2.0.0a1"
     writer.close()
     if args.track:
         wandb.finish()
-        
