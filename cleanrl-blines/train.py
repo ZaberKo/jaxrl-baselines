@@ -11,8 +11,7 @@ from agent.td3_brax import main as td3_brax
 from agent.c51 import main as c51
 
 os.environ["WANDB_MODE"] = "offline"
-os.environ["WANDB_API_KEY"] = "5341b8b0aa7a3635f2ea7c71e238ce16b52dfd9b"
-os.environ["HYDRA_FULL_ERROR"] = "1"
+
 @hydra.main(version_base=None, config_path="./config", config_name="ddpg_brax")
 def test_main(config: DictConfig):
     seeds = [42, 3407, 114514, 7, 1, 2021, 31415, 999, 500, 1024]
