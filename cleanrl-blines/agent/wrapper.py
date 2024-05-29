@@ -54,6 +54,9 @@ class GymnasiumWrapper(VectorGymWrapper):
             self.seed(seed)
         self._state, obs, self._key = self._reset(self._key)
         return obs, self._state.info
+    
+    def close(self):
+        return None
 
 
 def make_env(env_id, seed, idx, capture_video, run_name, num_envs):
