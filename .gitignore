@@ -36,7 +36,7 @@ Temporary Items
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
-__pycache__/
+*__pycache__/
 *.py[cod]
 *$py.class
 
@@ -231,3 +231,12 @@ outputs/
 multirun/
 
 brax-blines/configs/*.json
+
+
+test_*.py
+test_*.yaml
+**/wandb/
+**/runs/
+**/test.py
+**/*.out
+**/*.sh
