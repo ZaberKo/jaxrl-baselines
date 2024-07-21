@@ -29,14 +29,18 @@ import wandb
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_bool(
-    'run_distributed', False, 'Should an agent be executed in a distributed '
-    'way. If False, will run single-threaded.')
-flags.DEFINE_string('env_name', 'brax:ant', 'What environment to run')
-flags.DEFINE_integer('seed', 0, 'Random seed.')
-flags.DEFINE_integer('num_steps', 5_000_000, 'Number of env steps to run.')
-flags.DEFINE_integer('eval_every', 10_000, 'How often to run evaluation.')
-flags.DEFINE_integer('evaluation_episodes', 10, 'Evaluation episodes.')
+if not FLAGS.is_parsed():
+    flags.DEFINE_bool(
+        'run_distributed', False, 'Should an agent be executed in a distributed '
+        'way. If False, will run single-threaded.')
+    flags.DEFINE_string('env_name', 'brax:ant', 'What environment to run')
+    flags.DEFINE_string('wandb_project_name', 'acme-brax-baselines', 'What wandb project to log')
+    flags.DEFINE_string('wandb_log_name', 'acme-brax-td3-ant_mean', 'The name of log')
+    flags.DEFINE_string('wandb_log_tag', 'acme', 'The tag of wandb log')
+    flags.DEFINE_integer('seed', 0, 'Random seed.')
+    flags.DEFINE_integer('num_steps', 5_000_000, 'Number of env steps to run.')
+    flags.DEFINE_integer('eval_every', 10_000, 'How often to run evaluation.')
+    flags.DEFINE_integer('evaluation_episodes', 10, 'Evaluation episodes.')
 
 
 def build_experiment_config():
@@ -63,28 +67,29 @@ def build_experiment_config():
   # pylint:enable=g-long-lambda
 
 
-def main(_):
-  config = build_experiment_config()
-  if FLAGS.run_distributed:
-    program = experiments.make_distributed_experiment(
-        experiment=config, num_actors=4)
-    lp.launch(program, xm_resources=lp_utils.make_xm_docker_resources(program))
-  else:
-    run_experiment.run_experiment(
-        experiment=config,
-        eval_every=FLAGS.eval_every,
-        num_eval_episodes=FLAGS.evaluation_episodes)
+def train_agent(_):
+    output_dir = get_output_dir()
+    print(FLAGS.env_name)
+
+    wandb.init(
+        project=FLAGS.wandb_project_name,
+        name=FLAGS.wandb_log_name,
+        # config=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
+        tags=FLAGS.wandb_log_tag,
+        dir=output_dir
+    )
+    config = build_experiment_config()
+    if FLAGS.run_distributed:
+        program = experiments.make_distributed_experiment(
+            experiment=config, num_actors=4)
+        lp.launch(program, xm_resources=lp_utils.make_xm_docker_resources(program))
+    else:
+        run_experiment.run_experiment(
+            experiment=config,
+            eval_every=FLAGS.eval_every,
+            num_eval_episodes=FLAGS.evaluation_episodes)
 
 
 if __name__ == '__main__':
-    output_dir = get_output_dir()
 
-    wandb.init(
-        project='acme-brax-baselines',
-        name='acme-brax-td3-ant',
-        # config=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
-        tags='acme',
-        dir=output_dir
-    )
-    app.run(main)
-    wandb.finish(1)
+    app.run(train_agent)

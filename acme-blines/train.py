@@ -1,50 +1,33 @@
-"""Example running IMPALA on brax env"""
+import argparse
+from absl import app
 
-import functools
-from datetime import datetime
-import hydra
-import wandb
-from omegaconf import OmegaConf, DictConfig
-from utils import get_output_dir, metrics_todict, set_omegaconf_resolvers
+def main():
+    parser = argparse.ArgumentParser(description="set wandb env and seed")
 
-import brax.v1.envs as v1_envs
-from brax import envs
+    parser.add_argument('agent_name', type=str, default='ppo')
+    parser.add_argument('--env_name', type=str, default='brax:hopper')
+    parser.add_argument('--num_steps', type=int, default=5_000_000)
+    parser.add_argument('--eval_every', type=int, default=10_000)
+    parser.add_argument('--evaluation_episodes', type=int, default=10)
+    parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument('--wandb_project_name', type=str, default='acme-brax-baselines')
+    parser.add_argument('--wandb_log_name', type=str, default='acme-brax-ppo-hopper_mean')
+    parser.add_argument('--wandb_log_tag', type=str, default='acme')
 
-set_omegaconf_resolvers()
+    args = parser.parse_args()
 
-@hydra.main(version_base=None, config_path="./configs", config_name="config")
-def train(config: DictConfig):
-    print(OmegaConf.to_yaml(config))
+    # app.run(run_ppo.train_agent)
 
-    output_dir = get_output_dir()
-
-    wandb.init(
-        project=config.wandb.project,
-        name=config.wandb.name,
-        config=OmegaConf.to_container(config, resolve=True),
-        tags=config.wandb.tags,
-        dir=output_dir
-    )
-
-    try:
-        
-        train_fn = hydra.utils.get_method(config.train_fn)
-
-        times = [datetime.now()]
-
-        def wandb_progess_fn(env_steps, metrics):
-            times.append(datetime.now())
-            wandb.log(metrics_todict(metrics), env_steps)
-
-        train_fn()
-        
-        print(f'time to jit: {times[1] - times[0]}')
-        print(f'time to train: {times[-1] - times[1]}')
-    except Exception as e:
-        print(e)
-        wandb.finish(1)
-    
-    wandb.finish()
+    if args.agent_name == 'ppo':
+        import run_ppo
+        app.run(run_ppo.train_agent)
+    elif args.agent_name == 'td3':
+        import run_td3
+        app.run(run_td3.train_agent)
+    # elif args.agent_name == 'impala':
+    #     run_impala()
+    else:
+        raise ValueError("Unsupported agent type specified in the configuration!")
 
 if __name__ == '__main__':
-    train()
+    main()

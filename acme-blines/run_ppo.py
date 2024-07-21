@@ -8,13 +8,18 @@ from acme.utils import lp_utils
 import launchpad as lp
 from utils import get_output_dir
 import wandb
+import os
 
+os.environ["WANDB_MODE"] = "offline"
 FLAGS = flags.FLAGS
 
 flags.DEFINE_bool(
     'run_distributed', False, 'Should an agent be executed in a distributed '
     'way. If False, will run single-threaded.')
 flags.DEFINE_string('env_name', 'brax:halfcheetah', 'What environment to run')
+flags.DEFINE_string('wandb_project_name', 'acme-brax-baselines', 'What wandb project to log')
+flags.DEFINE_string('wandb_log_name', 'acme-brax-ppo-halfcheetah_mean', 'The name of log')
+flags.DEFINE_string('wandb_log_tag', 'acme', 'The tag of wandb log')
 flags.DEFINE_integer('seed', 21, 'Random seed.')
 flags.DEFINE_integer('num_steps', 5_000_000, 'Number of env steps to run.')
 flags.DEFINE_integer('eval_every', 10_000, 'How often to run evaluation.')
@@ -40,7 +45,17 @@ def build_experiment_config():
         seed=FLAGS.seed,
         max_num_actor_steps=FLAGS.num_steps)
 
-def main(_):
+def train_agent(_):
+    output_dir = get_output_dir()
+    print(FLAGS.env_name)
+
+    wandb.init(
+        project=FLAGS.wandb_project_name,
+        name=FLAGS.wandb_log_name,
+        # config=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
+        tags=FLAGS.wandb_log_tag,
+        dir=output_dir
+    )
     config = build_experiment_config()
     if FLAGS.run_distributed:
         program = experiments.make_distributed_experiment(
@@ -54,16 +69,8 @@ def main(_):
             eval_every=FLAGS.eval_every,
             num_eval_episodes=FLAGS.evaluation_episodes
         )
+    
+    wandb.finish(1)
 
 if __name__ == '__main__':
-    output_dir = get_output_dir()
-
-    wandb.init(
-        project='acme-brax-baselines',
-        name='acme-brax-ppo-halfcheetah_mean',
-        # config=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
-        tags='acme',
-        dir=output_dir
-    )
-    app.run(main)
-    wandb.finish(1)
+    app.run(train_agent)
