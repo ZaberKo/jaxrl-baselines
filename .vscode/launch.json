@@ -5,6 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Gymnax Train_ES",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-config",
+                "agents/CartPole-v1/es.yaml"
+            ],
+            "cwd": "${workspaceFolder}/gymnax-blines",
+        },
+        {
+            "name": "Gymnax Train_PPO",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-config",
+                "agents/CartPole-v1/ppo.yaml"
+            ],
+            "cwd": "${workspaceFolder}/gymnax-blines",
+        },
+        {
             "name": "Brax Train",
             "type": "debugpy",
             "request": "launch",

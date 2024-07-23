@@ -1,0 +1,8 @@
+gymnax
+evosax
+optax
+dotmap
+tqdm
+numpy
+matplotlib
+pyyaml
