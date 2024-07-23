@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://10.16.94.223:32206/index.html
+HostUrl=https://10.16.94.223:32206/api/istorage/v1/file/download?filePath=%2Fsunyuewei%2Frequirements.txt&fileModel=2&storageName=master&X-Auth-Token=1016550e5c3e41708629bf93ece67bb8

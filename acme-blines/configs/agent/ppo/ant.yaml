@@ -1,0 +1,8 @@
+# @package _global_
+
+train_fn: agents.ppo.run_ppo.train
+
+env_name: ant
+
+wandb:
+  name: ppo-${env_name}

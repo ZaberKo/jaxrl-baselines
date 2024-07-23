@@ -1,0 +1,148 @@
+{
+    "os": "Linux-5.15.146.1-microsoft-standard-WSL2-x86_64-with-glibc2.10",
+    "python": "3.8.0",
+    "heartbeatAt": "2024-05-25T05:24:09.466214",
+    "startedAt": "2024-05-25T05:24:07.226088",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/qxiao0521/jaxrl-baselines/acme-blines/run_ppo.py",
+    "codePathLocal": "run_ppo.py",
+    "codePath": "acme-blines/run_ppo.py",
+    "git": {
+        "remote": "https://github.com/qxiao0521/jaxrl-baselines.git",
+        "commit": "622f4fde3e0fbf50ff5113dc228b7c8e7f5fea0d"
+    },
+    "email": null,
+    "root": "/home/qxiao0521/jaxrl-baselines",
+    "host": "LAPTOP-09FIT230",
+    "username": "qxiao0521",
+    "executable": "/home/qxiao0521/anaconda3/envs/acme_setup_env/bin/python",
+    "cpu_count": 10,
+    "cpu_count_logical": 20,
+    "cpu_freq": {
+        "current": 2918.400000000001,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2918.4,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 1006.853931427002,
+            "used": 57.3093376159668
+        }
+    },
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "memory_total": 8585740288
+        }
+    ],
+    "memory": {
+        "total": 7.5746612548828125
+    }
+}
