@@ -5,6 +5,10 @@ import flashbax
 import numpy as np
 import brax
 import gymnasium as gym
+from brax import envs
+from brax.envs.wrappers.gym import GymWrapper, VectorGymWrapper
+import jax
+
 def get_rb_item(obs, action, reward, next_obs, done, truncation):
     item = dict(
         obs=obs,
@@ -107,3 +111,54 @@ class AttrDict:
     def __repr__(self):
         # 定制对象的打印信息，方便调试
         return str(self.__ddict__)
+
+class Evaluator:
+    def __init__(self, env_id, num_envs, num_episodes=1000):
+        # 创建并行环境
+        self.env = envs.create(env_id, batch_size=num_envs, episode_length=num_episodes)
+        self.num_envs = num_envs
+
+    def evaluate(self, env_key, actor, actor_state):
+        # 初始化环境和评估器状态
+        env_state = self.env.reset(rng=env_key)
+        init_vals = {
+            "env_state": env_state,
+            "total_rewards": jnp.zeros(self.num_envs),
+            "episode_lengths": jnp.zeros(self.num_envs),
+            "done": jnp.zeros(self.num_envs, dtype=bool),
+            "step_count": 0,
+        }
+
+        # 定义条件函数
+        def cond_fn(vals):
+            return ~vals["done"].all()
+
+        # 定义循环主体函数
+        def body_fn(vals):
+            env_state = vals["env_state"]
+            action = actor.apply(actor_state.params, env_state.obs)
+            env_state = self.env.step(env_state, action)
+            reward = (0.99 ** vals["step_count"]) * env_state.reward
+
+            first_done = jnp.logical_and(~vals["done"], env_state.done)
+            total_rewards = vals["total_rewards"] + reward * (~vals["done"])
+            total_rewards = total_rewards + env_state.reward * first_done
+
+            episode_lengths = vals["episode_lengths"] + (~vals["done"])
+
+            return {
+                "env_state": env_state,
+                "total_rewards": total_rewards,
+                "episode_lengths": episode_lengths,
+                "done": jnp.logical_or(vals["done"], env_state.done),
+                "step_count": vals["step_count"] + 1,
+            }
+
+        # 执行 JAX 优化的 while 循环
+        final_vals = jax.lax.while_loop(cond_fn, body_fn, init_vals)
+
+        # 计算平均奖励和步长
+        average_reward = jnp.mean(final_vals["total_rewards"])
+        average_length = jnp.mean(final_vals["episode_lengths"])
+
+        return average_reward, average_length

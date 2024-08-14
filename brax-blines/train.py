@@ -8,7 +8,7 @@ from datetime import datetime
 from jax import numpy as jnp
 import matplotlib.pyplot as plt
 
-from IPython.display import HTML, clear_output
+# from IPython.display import HTML, clear_output
 
 import brax
 

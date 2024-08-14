@@ -9,7 +9,7 @@ upload_model: false
 hf_entity: ""
 # Algorithm specific arguments
 env_id: "Hopper"
-total_timesteps: 1000000
+total_timesteps: 5000000
 learning_rate: 0.0003
 buffer_size: 1000000
 gamma: 0.99

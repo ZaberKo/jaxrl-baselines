@@ -109,6 +109,9 @@ poetry run pip install "stable_baselines3==2.0.0a1"
     #     [make_env(args.env_id, args.seed, 0, args.capture_video, run_name)]
     # )
     envs = make_env(args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs)
+    # evaluator = Evaluator(env=eval_env, agent=agent,
+    #                           max_episode_steps=config.env.max_episode_steps)
+
     # assert isinstance(
     #     envs.single_action_space, gym.spaces.Box
     # ), "only continuous action space is supported"
@@ -232,9 +235,9 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         if "final_info" in infos:
             for info in infos["final_info"]:
-                print(
-                    f"global_step={global_step}, episodic_return={info['episode']['r']}"
-                )
+                # print(
+                #     f"global_step={global_step}, episodic_return={info['episode']['r']}"
+                # )
                 writer.add_scalar(
                     "charts/episodic_return", info["episode"]["r"], global_step
                 )
@@ -279,12 +282,12 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                 writer.add_scalar(
                     "losses/actor_loss", actor_loss_value.item(), global_step
                 )
-                print("SPS:", int(global_step / (time.time() - start_time)))
-                writer.add_scalar(
-                    "charts/SPS",
-                    int(global_step / (time.time() - start_time)),
-                    global_step,
-                )
+                # print("SPS:", int(global_step / (time.time() - start_time)))
+                # writer.add_scalar(
+                #     "charts/SPS",
+                #     int(global_step / (time.time() - start_time)),
+                #     global_step,
+                # )
 
     if args.save_model:
         model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"

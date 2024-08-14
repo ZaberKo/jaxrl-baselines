@@ -70,7 +70,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         )
     # args = tyro.cli(Args)
     assert args.num_envs == 1, "vectorized envs are not supported at the moment"
-    run_name = f"cleanrl_{args.exp_name}_{args.seed}"
+    run_name = f"cleanrl_{args.exp_name}"
     if args.track:
         import wandb
 
@@ -79,10 +79,11 @@ poetry run pip install "stable_baselines3==2.0.0a1"
             entity=args.wandb_entity,
             sync_tensorboard=True,
             config=OmegaConf.to_container(args, resolve=True),
-            name=run_name,
+            name=args.exp_name,
             monitor_gym=True,
             save_code=True,
-            mode="offline"
+            mode="offline",
+            group=run_name,
         )
 
     writer = SummaryWriter(f"runs/{run_name}")
