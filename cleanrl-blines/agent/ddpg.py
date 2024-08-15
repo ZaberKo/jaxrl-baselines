@@ -54,8 +54,7 @@ class TrainState(TrainState):
 
 
 def main(args):
-
-    run_name = f"cleanrl_{args.exp_name}_{args.seed}"
+    run_name = f"cleanrl_{args.exp_name}"
     if args.track:
         import wandb
 
@@ -64,7 +63,8 @@ def main(args):
             entity=args.wandb_entity,
             sync_tensorboard=True,
             config=OmegaConf.to_container(args, resolve=True),
-            name=run_name,
+            name=args.exp_name,
+            group=run_name,
             monitor_gym=True,
             save_code=True,
             mode="offline"
@@ -84,7 +84,6 @@ def main(args):
     key, actor_key, qf1_key = jax.random.split(key, 3)
 
     # env setup
-    
     envs = make_env(args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs)
     evaluator = Evaluator(args.env_id, args.seed)
 
@@ -172,7 +171,6 @@ def main(args):
         )
         return actor_state, qf1_state, actor_loss_value
 
-    start_time = time.time()
     for global_step in range(args.total_timesteps):
         # ALGO LOGIC: put action logic here
         if global_step < args.learning_starts:
@@ -202,10 +200,10 @@ def main(args):
                 #     f"global_step={global_step}, episodic_return={info['episode']['r']}"
                 # )
                 writer.add_scalar(
-                    "charts/episodic_return", info["episode"]["r"], global_step
+                    "training/episodic_return", info["episode"]["r"], global_step
                 )
                 writer.add_scalar(
-                    "charts/episodic_length", info["episode"]["l"], global_step
+                    "training/episodic_length", info["episode"]["l"], global_step
                 )
                 break
 

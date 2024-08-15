@@ -1,8 +1,6 @@
 # docs and experiment results can be found at https://docs.cleanrl.dev/rl-algorithms/td3/#td3_continuous_action_jaxpy
-import os
 import random
 import time
-from dataclasses import dataclass
 
 import flax
 import flax.linen as nn
@@ -12,8 +10,8 @@ import jax.numpy as jnp
 import numpy as np
 import optax
 from flax.training.train_state import TrainState
-from agent.wrapper import make_env, ReplayBuffer
-from agent.utils import AttrDict
+from .wrapper import make_env, ReplayBuffer
+from .utils import AttrDict, Evaluator
 # from stable_baselines3.common.buffers import ReplayBuffer
 from tensorboardX import SummaryWriter
 from omegaconf import DictConfig, OmegaConf
@@ -54,15 +52,7 @@ class TrainState(TrainState):
 
 
 def main(args):
-    import stable_baselines3 as sb3
-
-    if sb3.__version__ < "2.0":
-        raise ValueError(
-            """Ongoing migration: run the following command to install the new dependencies:
-poetry run pip install "stable_baselines3==2.0.0a1"
-"""
-        )
-    run_name = f"cleanrl_{args.exp_name}_{args.seed}"
+    run_name = f"cleanrl_{args.exp_name}"
     if args.track:
         import wandb
 
@@ -71,7 +61,8 @@ poetry run pip install "stable_baselines3==2.0.0a1"
             entity=args.wandb_entity,
             sync_tensorboard=True,
             config=OmegaConf.to_container(args, resolve=True),
-            name=run_name,
+            name=args.exp_name,
+            group=run_name,
             monitor_gym=True,
             save_code=True,
             mode="offline"
@@ -91,25 +82,12 @@ poetry run pip install "stable_baselines3==2.0.0a1"
     key, actor_key, qf1_key, qf2_key = jax.random.split(key, 4)
 
     # env setup
-    # envs = gym.vector.SyncVectorEnv(
-    #     [make_env(args.env_id, args.seed, 0, args.capture_video, run_name)]
-    # )
     envs = make_env(
         args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs
     )
-    # assert isinstance(
-    #     envs.single_action_space, gym.spaces.Box
-    # ), "only continuous action space is supported"
+    evaluator = Evaluator(args.env_id, args.seed)
 
     max_action = float(envs.single_action_space.high[0,0])
-    # envs.single_observation_space.dtype = np.float32
-    # rb = ReplayBuffer(
-    #     args.buffer_size,
-    #     envs.single_observation_space,
-    #     envs.single_action_space,
-    #     device="cpu",
-    #     handle_timeout_termination=False,
-    # )
     rb = ReplayBuffer(args.buffer_size, envs, args.batch_size, key)
     # TRY NOT TO MODIFY: start the game
     obs, _ = envs.reset(seed=args.seed)
@@ -260,14 +238,14 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         if "final_info" in infos:
             for info in infos["final_info"]:
-                print(
-                    f"global_step={global_step}, episodic_return={info['episode']['r']}"
+                # print(
+                #     f"global_step={global_step}, episodic_return={info['episode']['r']}"
+                # )
+                writer.add_scalar(
+                    "training/episodic_return", info["episode"]["r"], global_step
                 )
                 writer.add_scalar(
-                    "charts/episodic_return", info["episode"]["r"], global_step
-                )
-                writer.add_scalar(
-                    "charts/episodic_length", info["episode"]["l"], global_step
+                    "training/episodic_length", info["episode"]["l"], global_step
                 )
                 break
 
@@ -311,19 +289,16 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                 )
 
             if global_step % 100 == 0:
-                writer.add_scalar("losses/qf1_loss", qf1_loss_value.item(), global_step)
-                writer.add_scalar("losses/qf2_loss", qf2_loss_value.item(), global_step)
-                writer.add_scalar("losses/qf1_values", qf1_a_values.item(), global_step)
-                writer.add_scalar("losses/qf2_values", qf2_a_values.item(), global_step)
+                writer.add_scalar("training/qf1_loss", qf1_loss_value.item(), global_step)
+                writer.add_scalar("training/qf2_loss", qf2_loss_value.item(), global_step)
+                writer.add_scalar("training/qf1_values", qf1_a_values.item(), global_step)
+                writer.add_scalar("training/qf2_values", qf2_a_values.item(), global_step)
                 writer.add_scalar(
                     "losses/actor_loss", actor_loss_value.item(), global_step
                 )
-                print("SPS:", int(global_step / (time.time() - start_time)))
-                writer.add_scalar(
-                    "charts/SPS",
-                    int(global_step / (time.time() - start_time)),
-                    global_step,
-                )
+                average_reward, average_length = evaluator.evaluate(actor, actor_state)
+                writer.add_scalar("evalution/reward", average_reward.item(), global_step)
+                writer.add_scalar("evalution/length", average_length.item(), global_step)
 
     if args.save_model:
         model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
@@ -338,33 +313,6 @@ poetry run pip install "stable_baselines3==2.0.0a1"
                 )
             )
         print(f"model saved to {model_path}")
-        from cleanrl_utils.evals.td3_jax_eval import evaluate
-
-        episodic_returns = evaluate(
-            model_path,
-            make_env,
-            args.env_id,
-            eval_episodes=10,
-            run_name=f"{run_name}-eval",
-            Model=(Actor, QNetwork),
-            exploration_noise=args.exploration_noise,
-        )
-        for idx, episodic_return in enumerate(episodic_returns):
-            writer.add_scalar("eval/episodic_return", episodic_return, idx)
-
-        if args.upload_model:
-            from cleanrl_utils.huggingface import push_to_hub
-
-            repo_name = f"{args.env_id}-{args.exp_name}-seed{args.seed}"
-            repo_id = f"{args.hf_entity}/{repo_name}" if args.hf_entity else repo_name
-            push_to_hub(
-                args,
-                episodic_returns,
-                repo_id,
-                "TD3",
-                f"runs/{run_name}",
-                f"videos/{run_name}-eval",
-            )
 
     envs.close()
     writer.close()

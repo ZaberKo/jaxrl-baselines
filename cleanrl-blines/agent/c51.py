@@ -1,12 +1,11 @@
 # docs and experiment results can be found at https://docs.cleanrl.dev/rl-algorithms/c51/#c51_jaxpy
-import os
 import random
 import time
-from dataclasses import dataclass
 
 import flax
 import flax.linen as nn
-import gymnasium as gym
+from .wrapper import make_env, ReplayBuffer
+from .utils import Evaluator, AttrDict
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -15,20 +14,6 @@ from flax.training.train_state import TrainState
 from stable_baselines3.common.buffers import ReplayBuffer
 from tensorboardX import SummaryWriter
 from omegaconf import DictConfig, OmegaConf
-
-def make_env(env_id, seed, idx, capture_video, run_name):
-    def thunk():
-        if capture_video and idx == 0:
-            env = gym.make(env_id, render_mode="rgb_array")
-            env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
-        else:
-            env = gym.make(env_id)
-        env = gym.wrappers.RecordEpisodeStatistics(env)
-        env.action_space.seed(seed)
-
-        return env
-
-    return thunk
 
 
 # ALGO LOGIC: initialize agent here:
@@ -80,10 +65,10 @@ poetry run pip install "stable_baselines3==2.0.0a1"
             sync_tensorboard=True,
             config=OmegaConf.to_container(args, resolve=True),
             name=args.exp_name,
+            group=run_name,
             monitor_gym=True,
             save_code=True,
             mode="offline",
-            group=run_name,
         )
 
     writer = SummaryWriter(f"runs/{run_name}")
@@ -100,18 +85,11 @@ poetry run pip install "stable_baselines3==2.0.0a1"
     key, q_key = jax.random.split(key, 2)
 
     # env setup
-    envs = gym.vector.SyncVectorEnv(
-        [
-            make_env(args.env_id, args.seed + i, i, args.capture_video, run_name)
-            for i in range(args.num_envs)
-        ]
-    )
-    assert isinstance(
-        envs.single_action_space, gym.spaces.Discrete
-    ), "only discrete action space is supported"
+    envs = make_env(args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs)
+    evaluator = Evaluator(args.env_id, args.seed)
 
     obs, _ = envs.reset(seed=args.seed)
-    q_network = QNetwork(action_dim=envs.single_action_space.n, n_atoms=args.n_atoms)
+    q_network = QNetwork(action_dim=np.prod(envs.single_action_space.shape), n_atoms=args.n_atoms)
     q_state = TrainState.create(
         apply_fn=q_network.apply,
         params=q_network.init(q_key, obs),
@@ -126,13 +104,14 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         target_params=optax.incremental_update(q_state.params, q_state.target_params, 1)
     )
 
-    rb = ReplayBuffer(
-        args.buffer_size,
-        envs.single_observation_space,
-        envs.single_action_space,
-        "cpu",
-        handle_timeout_termination=False,
-    )
+    # rb = ReplayBuffer(
+    #     args.buffer_size,
+    #     envs.single_observation_space,
+    #     envs.single_action_space,
+    #     "cpu",
+    #     handle_timeout_termination=False,
+    # )
+    rb = ReplayBuffer(args.buffer_size, envs, args.batch_size, key)
 
     @jax.jit
     def update(q_state, observations, actions, next_observations, rewards, dones):
@@ -210,22 +189,22 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         if "final_info" in infos:
             for info in infos["final_info"]:
                 if info and "episode" in info:
-                    print(
-                        f"global_step={global_step}, episodic_return={info['episode']['r']}"
+                    # print(
+                    #     f"global_step={global_step}, episodic_return={info['episode']['r']}"
+                    # )
+                    writer.add_scalar(
+                        "training/episodic_return", info["episode"]["r"], global_step
                     )
                     writer.add_scalar(
-                        "charts/episodic_return", info["episode"]["r"], global_step
-                    )
-                    writer.add_scalar(
-                        "charts/episodic_length", info["episode"]["l"], global_step
+                        "training/episodic_length", info["episode"]["l"], global_step
                     )
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
-        real_next_obs = next_obs.copy()
-        for idx, trunc in enumerate(truncations):
-            if trunc:
-                real_next_obs[idx] = infos["final_observation"][idx]
-        rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
+        # real_next_obs = next_obs.copy()
+        # for idx, trunc in enumerate(truncations):
+        #     if trunc:
+        #         real_next_obs[idx] = infos["final_observation"][idx]
+        rb.add(obs, next_obs, actions, rewards, terminations, infos)
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
@@ -236,26 +215,24 @@ poetry run pip install "stable_baselines3==2.0.0a1"
             and global_step % args.train_frequency == 0
         ):
             data = rb.sample(args.batch_size)
+            data = AttrDict(data)
             loss, old_val, q_state = update(
                 q_state,
                 data.observations.numpy(),
                 data.actions.numpy(),
                 data.next_observations.numpy(),
-                data.rewards.numpy(),
-                data.dones.numpy(),
+                data.rewards.numpy().flatten(),
+                data.dones.numpy().flatten(),
             )
 
             if global_step % 100 == 0:        
-                writer.add_scalar("losses/loss", jax.device_get(loss), global_step)
+                writer.add_scalar("training/loss", jax.device_get(loss), global_step)
                 writer.add_scalar(
-                    "losses/q_values", jax.device_get(old_val.mean()), global_step
+                    "training/q_values", jax.device_get(old_val.mean()), global_step
                 )
-                print("SPS:", int(global_step / (time.time() - start_time)))
-                writer.add_scalar(
-                    "charts/SPS",
-                    int(global_step / (time.time() - start_time)),
-                    global_step,
-                )
+                # average_reward, average_length = evaluator.evaluate(actor, actor_state)
+                # writer.add_scalar("evalution/reward", average_reward.item(), global_step)
+                # writer.add_scalar("evalution/length", average_length.item(), global_step)
 
             # update target network
             if global_step % args.target_network_frequency == 0:
@@ -274,34 +251,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         with open(model_path, "wb") as f:
             f.write(flax.serialization.to_bytes(model_data))
         print(f"model saved to {model_path}")
-        from cleanrl_utils.evals.c51_jax_eval import evaluate
-
-        episodic_returns = evaluate(
-            model_path,
-            make_env,
-            args.env_id,
-            eval_episodes=10,
-            run_name=f"{run_name}-eval",
-            Model=QNetwork,
-            epsilon=0.05,
-        )
-        for idx, episodic_return in enumerate(episodic_returns):
-            writer.add_scalar("eval/episodic_return", episodic_return, idx)
-
-        if args.upload_model:
-            from cleanrl_utils.huggingface import push_to_hub
-
-            repo_name = f"{args.env_id}-{args.exp_name}-seed{args.seed}"
-            repo_id = f"{args.hf_entity}/{repo_name}" if args.hf_entity else repo_name
-            push_to_hub(
-                args,
-                episodic_returns,
-                repo_id,
-                "C51",
-                f"runs/{run_name}",
-                f"videos/{run_name}-eval",
-            )
-
+        
     envs.close()
     writer.close()
     if args.track:
