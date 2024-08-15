@@ -112,53 +112,70 @@ class AttrDict:
         # 定制对象的打印信息，方便调试
         return str(self.__ddict__)
 
+from functools import partial
+
 class Evaluator:
-    def __init__(self, env_id, num_envs, num_episodes=1000):
+    def __init__(self, env_id, seed=0, num_envs=10, num_episodes=1000):
         # 创建并行环境
         self.env = envs.create(env_id, batch_size=num_envs, episode_length=num_episodes)
         self.num_envs = num_envs
+        self.key = jax.random.PRNGKey(seed)
 
-    def evaluate(self, env_key, actor, actor_state):
+    # @jax.jit
+    @partial(jax.jit, static_argnums=(0,))
+    def _evaluate(self, env_key, actor, actor_state):
         # 初始化环境和评估器状态
         env_state = self.env.reset(rng=env_key)
-        init_vals = {
-            "env_state": env_state,
-            "total_rewards": jnp.zeros(self.num_envs),
-            "episode_lengths": jnp.zeros(self.num_envs),
-            "done": jnp.zeros(self.num_envs, dtype=bool),
-            "step_count": 0,
-        }
+        init_vals = (
+            env_state,
+            jnp.zeros(self.num_envs),
+            jnp.zeros(self.num_envs),
+            jnp.zeros(self.num_envs, dtype=bool),
+            0,
+        )
 
         # 定义条件函数
         def cond_fn(vals):
-            return ~vals["done"].all()
+            _, _, _, done, _ = vals
+            return ~done.all()
 
         # 定义循环主体函数
         def body_fn(vals):
-            env_state = vals["env_state"]
+            env_state, total_rewards, episode_lengths, done, step_count = vals
             action = actor.apply(actor_state.params, env_state.obs)
             env_state = self.env.step(env_state, action)
-            reward = (0.99 ** vals["step_count"]) * env_state.reward
+            reward = env_state.reward
 
-            first_done = jnp.logical_and(~vals["done"], env_state.done)
-            total_rewards = vals["total_rewards"] + reward * (~vals["done"])
+            first_done = jnp.logical_and(~done, env_state.done)
+            total_rewards = total_rewards + reward * (~done)
             total_rewards = total_rewards + env_state.reward * first_done
 
-            episode_lengths = vals["episode_lengths"] + (~vals["done"])
+            episode_lengths = episode_lengths + (~done)
 
-            return {
-                "env_state": env_state,
-                "total_rewards": total_rewards,
-                "episode_lengths": episode_lengths,
-                "done": jnp.logical_or(vals["done"], env_state.done),
-                "step_count": vals["step_count"] + 1,
-            }
+            return (
+                env_state,
+                total_rewards,
+                episode_lengths,
+                jnp.logical_or(done, env_state.done),
+                step_count + 1,
+            )
 
         # 执行 JAX 优化的 while 循环
+
         final_vals = jax.lax.while_loop(cond_fn, body_fn, init_vals)
 
         # 计算平均奖励和步长
-        average_reward = jnp.mean(final_vals["total_rewards"])
-        average_length = jnp.mean(final_vals["episode_lengths"])
+        _, total_rewards, episode_lengths, _, _ = final_vals
+
+        # 计算平均奖励和步长
+        average_reward = jnp.mean(total_rewards)
+        average_length = jnp.mean(episode_lengths)
 
         return average_reward, average_length
+    
+    def evaluate(self, actor, actor_state):
+        key, env_key = jax.random.split(self.key)
+        self.key = key
+        average_reward, average_length = self._evaluate(env_key, actor, actor_state)
+        return average_reward, average_length
+    
