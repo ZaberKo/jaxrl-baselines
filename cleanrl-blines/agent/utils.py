@@ -122,8 +122,8 @@ class Evaluator:
         self.key = jax.random.PRNGKey(seed)
 
     # @jax.jit
-    @partial(jax.jit, static_argnums=(0,))
-    def _evaluate(self, env_key, actor, actor_state):
+    @partial(jax.jit, static_argnums=(0,2))
+    def _evaluate(self, env_key, actor_apply, actor_state):
         # 初始化环境和评估器状态
         env_state = self.env.reset(rng=env_key)
         init_vals = (
@@ -142,7 +142,7 @@ class Evaluator:
         # 定义循环主体函数
         def body_fn(vals):
             env_state, total_rewards, episode_lengths, done, step_count = vals
-            action = actor.apply(actor_state.params, env_state.obs)
+            action = actor_apply(actor_state.params, env_state.obs)
             env_state = self.env.step(env_state, action)
             reward = env_state.reward
 
@@ -176,6 +176,6 @@ class Evaluator:
     def evaluate(self, actor, actor_state):
         key, env_key = jax.random.split(self.key)
         self.key = key
-        average_reward, average_length = self._evaluate(env_key, actor, actor_state)
+        average_reward, average_length = self._evaluate(env_key, actor.apply, actor_state)
         return average_reward, average_length
     
