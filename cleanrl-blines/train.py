@@ -14,7 +14,7 @@ os.environ["WANDB_MODE"] = "offline"
 
 @hydra.main(version_base=None, config_path="./config", config_name="ddpg")
 def test_main(config: DictConfig):
-    seeds = [42, 3407, 114514, 7, 1, 2021, 31415, 999, 500, 1024]
+    seeds = [42, 3407, 114514, 7, 1, 2021, 31415, 999, 500, 1024, 666]
     print(OmegaConf.to_yaml(config))
     for i in seeds:
         config.seed = i

@@ -1,1 +1,1 @@
-running time: 56 s
+running time: 1871 s

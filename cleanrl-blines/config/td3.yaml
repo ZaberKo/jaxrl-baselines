@@ -1,7 +1,7 @@
 exp_name: "td3-Hopper"  # Adjust this name based on the actual experiment
 seed: 2021
 track: true
-wandb_project_name: "JAXRL-baselines"
+wandb_project_name: JAXRL-baselines
 wandb_entity: sustech-emi-org
 capture_video: false
 save_model: false
@@ -10,11 +10,11 @@ hf_entity: ""
 
 # Algorithm specific arguments
 agent: td3
-env_id: hopper
-env_name: hopper
-total_timesteps: 5000000
+env_id: hopper #hopper
+env_name: hopper #hopper
+total_timesteps: 5000000 #5000000
 learning_rate: 0.0003
-buffer_size: 1000000
+buffer_size: 1000000 #1000000
 gamma: 0.99
 tau: 0.005
 batch_size: 256
