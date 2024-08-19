@@ -1,7 +1,7 @@
-exp_name: "dqn-CartPole-v1"  # Adjust this name based on the actual experiment
+exp_name: "dqn-Ant"  # Adjust this name based on the actual experiment
 seed: 31415
-track: true
-wandb_project_name: "JAXRL-baselines"
+track: false
+wandb_project_name: JAXRL-baselines
 wandb_entity: sustech-emi-org
 capture_video: false
 save_model: false
@@ -10,8 +10,8 @@ hf_entity: ""
 
 # Algorithm specific arguments
 agent: dqn
-env_id: CartPole-v1
-total_timesteps: 50000
+env_id: ant
+total_timesteps: 500000
 learning_rate: 0.00025
 num_envs: 1
 buffer_size: 10000

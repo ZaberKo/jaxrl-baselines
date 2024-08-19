@@ -11,23 +11,11 @@ import numpy as np
 import optax
 # import tyro
 from flax.training.train_state import TrainState
-from stable_baselines3.common.buffers import ReplayBuffer
+# from stable_baselines3.common.buffers import ReplayBuffer
+from .wrapper import make_env, ReplayBuffer
+from .utils import Evaluator, AttrDict
 from tensorboardX import SummaryWriter
 from omegaconf import DictConfig, OmegaConf
-
-def make_env(env_id, seed, idx, capture_video, run_name):
-    def thunk():
-        if capture_video and idx == 0:
-            env = gym.make(env_id, render_mode="rgb_array")
-            env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
-        else:
-            env = gym.make(env_id)
-        env = gym.wrappers.RecordEpisodeStatistics(env)
-        env.action_space.seed(seed)
-
-        return env
-
-    return thunk
 
 
 # ALGO LOGIC: initialize agent here:
@@ -43,6 +31,15 @@ class QNetwork(nn.Module):
         x = nn.Dense(self.action_dim)(x)
         return x
 
+class Actor():
+    def __init__(self, q_network,):
+        self.q_network = q_network
+    
+    @jax.jit
+    def apply(self, params, obs):
+        q_values = self.q_network.apply(params, obs)
+        actions = q_values.argmax(axis=-1)
+        return actions
 
 class TrainState(TrainState):
     target_params: flax.core.FrozenDict
@@ -54,17 +51,7 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
 
 
 def main(args):
-    import stable_baselines3 as sb3
-
-    if sb3.__version__ < "2.0":
-        raise ValueError(
-            """Ongoing migration: run the following command to install the new dependencies:
-
-poetry run pip install "stable_baselines3==2.0.0a1"
-"""
-        )
-    assert args.num_envs == 1, "vectorized envs are not supported at the moment"
-    run_name = f"cleanrl_{args.exp_name}_{args.seed}"
+    run_name = f"cleanrl_{args.exp_name}"
     if args.track:
         import wandb
 
@@ -73,7 +60,8 @@ poetry run pip install "stable_baselines3==2.0.0a1"
             entity=args.wandb_entity,
             sync_tensorboard=True,
             config=OmegaConf.to_container(args, resolve=True),
-            name=run_name,
+            name=args.exp_name,
+            group=run_name,
             mode="offline"
         )
   
@@ -91,38 +79,24 @@ poetry run pip install "stable_baselines3==2.0.0a1"
     key, q_key = jax.random.split(key, 2)
 
     # env setup
-    envs = gym.vector.SyncVectorEnv(
-        [
-            make_env(args.env_id, args.seed + i, i, args.capture_video, run_name)
-            for i in range(args.num_envs)
-        ]
-    )
-    assert isinstance(
-        envs.single_action_space, gym.spaces.Discrete
-    ), "only discrete action space is supported"
-
+    envs = make_env(args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs)
+    evaluator = Evaluator(args.env_id, args.seed)
     obs, _ = envs.reset(seed=args.seed)
-    q_network = QNetwork(action_dim=envs.single_action_space.n)
+    q_network = QNetwork(action_dim=np.prod(envs.single_action_space.shape))
     q_state = TrainState.create(
         apply_fn=q_network.apply,
         params=q_network.init(q_key, obs),
         target_params=q_network.init(q_key, obs),
         tx=optax.adam(learning_rate=args.learning_rate),
     )
-
+    actor = Actor(q_network)
     q_network.apply = jax.jit(q_network.apply)
     # This step is not necessary as init called on same observation and key will always lead to same initializations
     q_state = q_state.replace(
         target_params=optax.incremental_update(q_state.params, q_state.target_params, 1)
     )
 
-    rb = ReplayBuffer(
-        args.buffer_size,
-        envs.single_observation_space,
-        envs.single_action_space,
-        "cpu",
-        handle_timeout_termination=False,
-    )
+    rb = ReplayBuffer(args.buffer_size, envs, args.batch_size, key)
 
     @jax.jit
     def update(q_state, observations, actions, next_observations, rewards, dones):
@@ -144,8 +118,6 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         )
         q_state = q_state.apply_gradients(grads=grads)
         return loss_value, q_pred, q_state
-
-    start_time = time.time()
 
     # TRY NOT TO MODIFY: start the game
     obs, _ = envs.reset(seed=args.seed)
@@ -173,22 +145,22 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         if "final_info" in infos:
             for info in infos["final_info"]:
                 if info and "episode" in info:
-                    print(
-                        f"global_step={global_step}, episodic_return={info['episode']['r']}"
+                    # print(
+                    #     f"global_step={global_step}, episodic_return={info['episode']['r']}"
+                    # )
+                    writer.add_scalar(
+                        "training/episodic_return", info["episode"]["r"], global_step
                     )
                     writer.add_scalar(
-                        "charts/episodic_return", info["episode"]["r"], global_step
-                    )
-                    writer.add_scalar(
-                        "charts/episodic_length", info["episode"]["l"], global_step
+                        "training/episodic_length", info["episode"]["l"], global_step
                     )
 
         # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
-        real_next_obs = next_obs.copy()
-        for idx, trunc in enumerate(truncations):
-            if trunc:
-                real_next_obs[idx] = infos["final_observation"][idx]
-        rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
+        # real_next_obs = next_obs.copy()
+        # for idx, trunc in enumerate(truncations):
+        #     if trunc:
+        #         real_next_obs[idx] = infos["final_observation"][idx]
+        rb.add(obs, next_obs, actions, rewards, terminations, infos)
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
@@ -197,6 +169,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         if global_step > args.learning_starts:
             if global_step % args.train_frequency == 0:
                 data = rb.sample(args.batch_size)
+                data = AttrDict(data)
                 # perform a gradient-descent step
                 loss, old_val, q_state = update(
                     q_state,
@@ -209,17 +182,14 @@ poetry run pip install "stable_baselines3==2.0.0a1"
 
                 if global_step % 100 == 0:
                     writer.add_scalar(
-                        "losses/td_loss", jax.device_get(loss), global_step
+                        "training/td_loss", jax.device_get(loss), global_step
                     )
                     writer.add_scalar(
-                        "losses/q_values", jax.device_get(old_val).mean(), global_step
+                        "training/q_values", jax.device_get(old_val).mean(), global_step
                     )
-                    print("SPS:", int(global_step / (time.time() - start_time)))
-                    writer.add_scalar(
-                        "charts/SPS",
-                        int(global_step / (time.time() - start_time)),
-                        global_step,
-                    )
+                    average_reward, average_length = evaluator.evaluate(actor, q_state)
+                    writer.add_scalar("evalution/reward", average_reward.item(), global_step)
+                    writer.add_scalar("evalution/length", average_length.item(), global_step)
 
             # update target network
             if global_step % args.target_network_frequency == 0:
@@ -234,33 +204,6 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         with open(model_path, "wb") as f:
             f.write(flax.serialization.to_bytes(q_state.params))
         print(f"model saved to {model_path}")
-        from cleanrl_utils.evals.dqn_jax_eval import evaluate
-
-        episodic_returns = evaluate(
-            model_path,
-            make_env,
-            args.env_id,
-            eval_episodes=10,
-            run_name=f"{run_name}-eval",
-            Model=QNetwork,
-            epsilon=0.05,
-        )
-        for idx, episodic_return in enumerate(episodic_returns):
-            writer.add_scalar("eval/episodic_return", episodic_return, idx)
-
-        if args.upload_model:
-            from cleanrl_utils.huggingface import push_to_hub
-
-            repo_name = f"{args.env_id}-{args.exp_name}-seed{args.seed}"
-            repo_id = f"{args.hf_entity}/{repo_name}" if args.hf_entity else repo_name
-            push_to_hub(
-                args,
-                episodic_returns,
-                repo_id,
-                "DQN",
-                f"runs/{run_name}",
-                f"videos/{run_name}-eval",
-            )
 
     envs.close()
     writer.close()
