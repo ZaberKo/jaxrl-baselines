@@ -2,7 +2,7 @@ exp_name: "dqn-Ant"  # Adjust this name based on the actual experiment
 seed: 31415
 track: false
 wandb_project_name: JAXRL-baselines
-wandb_entity: sustech-emi-org
+wandb_entity: None
 capture_video: false
 save_model: false
 upload_model: false

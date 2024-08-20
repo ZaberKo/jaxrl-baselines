@@ -11,6 +11,10 @@ os.environ["WANDB_MODE"] = "offline"
 
 @hydra.main(version_base=None, config_path="./config", config_name="ddpg")
 def test_main(config: DictConfig):
+    parser = setup_parser()
+    args = parser.parse_args()
+    if args.wandb_entity:
+        config.wandb_entity = args.wandb_entity
     seeds = [42, 3407, 114514, 7, 1, 2021, 31415, 999, 500, 1024, 666]
     print(OmegaConf.to_yaml(config))
     for i in seeds:
@@ -31,6 +35,12 @@ def test_main(config: DictConfig):
 
 @hydra.main(version_base=None, config_path="./config", config_name="td3")
 def main(config: DictConfig):
+    parser = setup_parser()
+    args = parser.parse_args()
+    if args.wandb_entity:
+        config.wandb_entity = args.wandb_entity
+    if args.seed:
+        config.seed = args.seed
     print(OmegaConf.to_yaml(config))
 
     agent_type = config.agent
@@ -46,8 +56,8 @@ def main(config: DictConfig):
 
 def setup_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config-name", type=str, required=True, help="Configuration name")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument("--wandb_entity", type=str, default="None", help="Wandb entity")
     return parser
 
 if __name__ == "__main__":

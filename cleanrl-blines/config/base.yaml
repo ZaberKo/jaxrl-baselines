@@ -2,7 +2,7 @@ exp_name: "algo-env"  # 自动替换为当前脚本的文件名，需要代码�
 seed: 42
 track: true
 wandb_project_name: JAXRL-baselines
-wandb_entity: sustech-emi-org
+wandb_entity: None
 capture_video: false
 save_model: false
 upload_model: false

@@ -14,7 +14,7 @@ import optax
 
 from flax.training.train_state import TrainState
 # from stable_baselines3.common.buffers import ReplayBuffer
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 from omegaconf import DictConfig, OmegaConf
 
 
@@ -70,12 +70,12 @@ def main(args):
             mode="offline"
         )
 
-    writer = SummaryWriter(f"runs/{run_name}")
-    writer.add_text(
-        "hyperparameters",
-        "|param|value|\n|-|-|\n%s"
-        % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
-    )
+    # writer = SummaryWriter(f"runs/{run_name}")
+    # writer.add_text(
+    #     "hyperparameters",
+    #     "|param|value|\n|-|-|\n%s"
+    #     % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
+    # )
 
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
@@ -199,12 +199,11 @@ def main(args):
                 # print(
                 #     f"global_step={global_step}, episodic_return={info['episode']['r']}"
                 # )
-                writer.add_scalar(
-                    "training/episodic_return", info["episode"]["r"], global_step
-                )
-                writer.add_scalar(
-                    "training/episodic_length", info["episode"]["l"], global_step
-                )
+                wandb.log({
+                    "training/episodic_return": info["episode"]["r"], 
+                    "training/episodic_length": info["episode"]["l"],
+                    "global_step": global_step
+                })
                 break
 
         # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
@@ -238,14 +237,23 @@ def main(args):
                 )
 
             if global_step % 100 == 0:
-                writer.add_scalar("training/qf1_loss", qf1_loss_value.item(), global_step)
-                writer.add_scalar("training/qf1_values", qf1_a_values.item(), global_step)
-                writer.add_scalar(
-                    "losses/actor_loss", actor_loss_value.item(), global_step
-                )
                 average_reward, average_length = evaluator.evaluate(actor, actor_state)
-                writer.add_scalar("evalution/reward", average_reward.item(), global_step)
-                writer.add_scalar("evalution/length", average_length.item(), global_step)
+                wandb.log({
+                    "training/qf1_loss": qf1_loss_value.item(),
+                    "training/qf1_values": qf1_a_values.item(),
+                    "losses/actor_loss": actor_loss_value.item(),
+                    "evalution/reward": average_reward.item(),
+                    "evalution/length": average_length.item(),
+                    "global_step": global_step
+                })
+                # writer.add_scalar("training/qf1_loss", qf1_loss_value.item(), global_step)
+                # writer.add_scalar("training/qf1_values", qf1_a_values.item(), global_step)
+                # writer.add_scalar(
+                #     "losses/actor_loss", actor_loss_value.item(), global_step
+                # )
+                
+                # writer.add_scalar("evalution/reward", average_reward.item(), global_step)
+                # writer.add_scalar("evalution/length", average_length.item(), global_step)
                 
 
     if args.save_model:
