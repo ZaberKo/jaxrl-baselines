@@ -12,7 +12,7 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/cleanrl-blines",
             "args": [
-                "--config-name=ddpg",
+                "--config-name=dqn",
             ],
             "env": {
                 // "JAX_DISABLE_JIT": "true"

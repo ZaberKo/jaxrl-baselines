@@ -6,9 +6,6 @@ import os
 from agent.ddpg import main as ddpg
 from agent.td3 import main as td3
 from agent.dqn import main as dqn
-from agent.ddpg_brax import main as ddpg_brax
-from agent.td3_brax import main as td3_brax
-from agent.c51 import main as c51
 
 os.environ["WANDB_MODE"] = "offline"
 
@@ -26,12 +23,6 @@ def test_main(config: DictConfig):
             td3(config)
         elif agent_type == "ddpg":
             ddpg(config)
-        elif agent_type == 'c51':
-            c51(config)
-        elif agent_type == "ddpg_brax":
-            ddpg_brax(config)
-        elif agent_type == "td3_brax":
-            td3_brax(config)
         else:
             raise ValueError("Unsupported agent type specified in the configuration!")
 
@@ -49,12 +40,6 @@ def main(config: DictConfig):
         td3(config)
     elif agent_type == "ddpg":
         ddpg(config)
-    elif agent_type == 'c51':
-        c51(config)
-    elif agent_type == "ddpg_brax":
-        ddpg_brax(config)
-    elif agent_type == "td3_brax":
-        td3_brax(config)
     else:
         raise ValueError("Unsupported agent type specified in the configuration!")
 

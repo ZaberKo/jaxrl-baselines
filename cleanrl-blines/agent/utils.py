@@ -122,7 +122,7 @@ class Evaluator:
         self.key = jax.random.PRNGKey(seed)
 
     # @jax.jit
-    @partial(jax.jit, static_argnums=(0,2))
+    # @partial(jax.jit, static_argnums=(0,2))
     def _evaluate(self, env_key, actor_apply, actor_state):
         # 初始化环境和评估器状态
         env_state = self.env.reset(rng=env_key)

@@ -9,9 +9,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import optax
-# import tyro
 from flax.training.train_state import TrainState
-# from stable_baselines3.common.buffers import ReplayBuffer
 from .wrapper import make_env, ReplayBuffer
 from .utils import Evaluator, AttrDict
 from tensorboardX import SummaryWriter
@@ -72,7 +70,6 @@ def main(args):
         % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
     )
 
-    # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
     np.random.seed(args.seed)
     key = jax.random.PRNGKey(args.seed)
@@ -82,7 +79,11 @@ def main(args):
     envs = make_env(args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs)
     evaluator = Evaluator(args.env_id, args.seed)
     obs, _ = envs.reset(seed=args.seed)
-    q_network = QNetwork(action_dim=np.prod(envs.single_action_space.shape))
+
+    # !!!
+    # There is a problem in brax where the action space is continuous but the dqn's action must be discrete
+    q_network = QNetwork(action_dim=np.prod(envs.single_action_space.n))
+    
     q_state = TrainState.create(
         apply_fn=q_network.apply,
         params=q_network.init(q_key, obs),
@@ -155,11 +156,6 @@ def main(args):
                         "training/episodic_length", info["episode"]["l"], global_step
                     )
 
-        # TRY NOT TO MODIFY: save data to reply buffer; handle `final_observation`
-        # real_next_obs = next_obs.copy()
-        # for idx, trunc in enumerate(truncations):
-        #     if trunc:
-        #         real_next_obs[idx] = infos["final_observation"][idx]
         rb.add(obs, next_obs, actions, rewards, terminations, infos)
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
