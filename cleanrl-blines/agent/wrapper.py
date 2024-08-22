@@ -1,42 +1,15 @@
-# Copyright 2024 The Brax Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-# pylint:disable=g-multiple-import
-"""A brax environment for training and inference."""
-
-import abc
-from typing import Any, Dict, List, Optional, Sequence, Union
-
-from brax import base
-from brax.generalized import pipeline as g_pipeline
-from brax.io import image
-from brax.positional import pipeline as p_pipeline
-from brax.spring import pipeline as s_pipeline
-from flax import struct
 import jax
 import numpy as np
 import jax.numpy as jnp
 from brax.envs.wrappers.gym import GymWrapper, VectorGymWrapper
-from brax.envs.base import Wrapper
 from brax import envs
-import gymnasium as gym
 import flashbax
 import warnings
 
 
 class GymnasiumWrapper(VectorGymWrapper):
     """Vectorizes Brax env."""
+
     def setup(self):
         self.single_action_space = self.action_space
         self.single_observation_space = self.observation_space
@@ -54,7 +27,7 @@ class GymnasiumWrapper(VectorGymWrapper):
             self.seed(seed)
         self._state, obs, self._key = self._reset(self._key)
         return obs, self._state.info
-    
+
     def close(self):
         return None
 
@@ -68,12 +41,10 @@ def make_env(env_id, seed, idx, capture_video, run_name, num_envs):
     return env
 
 
-class ReplayBuffer():
+class ReplayBuffer:
 
     def __init__(self, buffer_size, env, batch_size, key):
-        self.rb, self.rb_state = self._replayer_buffer(
-            buffer_size, batch_size, env
-        )
+        self.rb, self.rb_state = self._replayer_buffer(buffer_size, batch_size, env)
         self.key = key
         # self.enable_jit()
 
@@ -84,8 +55,8 @@ class ReplayBuffer():
             sample_batch_size=batch_size,
             add_batches=True,
         )
-        dummy_action = np.squeeze(env.action_space.sample(),axis=0)
-        dummy_obs = np.squeeze(env.observation_space.sample(),axis=0)
+        dummy_action = np.squeeze(env.action_space.sample(), axis=0)
+        dummy_obs = np.squeeze(env.observation_space.sample(), axis=0)
         dummy_reward = jnp.zeros(())
         dummy_done = jnp.zeros(())
         dummy_next_obs = dummy_obs

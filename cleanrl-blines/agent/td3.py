@@ -4,16 +4,13 @@ import time
 
 import flax
 import flax.linen as nn
-# import gymnasium as gym
 import jax
 import jax.numpy as jnp
 import numpy as np
 import optax
 from flax.training.train_state import TrainState
 from .wrapper import make_env, ReplayBuffer
-from .utils import AttrDict, Evaluator, Evaluator2
-# from stable_baselines3.common.buffers import ReplayBuffer
-# from tensorboardX import SummaryWriter
+from .utils import AttrDict, Evaluator
 from omegaconf import DictConfig, OmegaConf
 
 
@@ -65,15 +62,8 @@ def main(args):
             group=run_name,
             monitor_gym=True,
             save_code=True,
-            mode="offline"
+            mode="offline",
         )
-
-    # writer = SummaryWriter(f"runs/{run_name}")
-    # writer.add_text(
-    #     "hyperparameters",
-    #     "|param|value|\n|-|-|\n%s"
-    #     % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
-    # )
 
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
@@ -85,11 +75,12 @@ def main(args):
     envs = make_env(
         args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs
     )
-    # evaluator = Evaluator(args.env_id, args.seed)
-    eval_env = make_env(args.env_id, args.seed, 0, args.capture_video, run_name, args.eval_env_nums)
-    evaluator = Evaluator2(eval_env, args.eval_env_nums, args.seed)
-    
-    max_action = float(envs.single_action_space.high[0,0])
+    eval_env = make_env(
+        args.env_id, args.seed, 0, args.capture_video, run_name, args.eval_env_nums
+    )
+    evaluator = Evaluator(eval_env, args.eval_env_nums, args.seed)
+
+    max_action = float(envs.single_action_space.high[0, 0])
     rb = ReplayBuffer(args.buffer_size, envs, args.batch_size, key)
     # TRY NOT TO MODIFY: start the game
     obs, _ = envs.reset(seed=args.seed)
@@ -250,11 +241,13 @@ def main(args):
                 #     "training/episodic_length", info["episode"]["l"], global_step
                 # )
                 if args.track:
-                    wandb.log({
-                        "training/episodic_return": info["episode"]["r"],
-                        "training/episodic_length": info["episode"]["l"],
-                        "global_step": global_step
-                    })
+                    wandb.log(
+                        {
+                            "training/episodic_return": info["episode"]["r"],
+                            "training/episodic_length": info["episode"]["l"],
+                            "global_step": global_step,
+                        }
+                    )
                 break
 
         # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
@@ -305,19 +298,23 @@ def main(args):
                 #     "losses/actor_loss", actor_loss_value.item(), global_step
                 # )
                 if args.track:
-                    average_reward, average_length = evaluator.evaluate(actor, actor_state)
+                    average_reward, average_length = evaluator.evaluate(
+                        actor, actor_state
+                    )
                     # writer.add_scalar("evalution/reward", average_reward.item(), global_step)
                     # writer.add_scalar("evalution/length", average_length.item(), global_step)
-                    wandb.log({
-                        "training/qf1_loss": qf1_loss_value.item(),
-                        "training/qf2_loss": qf2_loss_value.item(),
-                        "training/qf1_values": qf1_a_values.item(),
-                        "training/qf2_values": qf2_a_values.item(),
-                        "losses/actor_loss": actor_loss_value.item(),
-                        "evalution/reward": average_reward.item(),
-                        "evalution/length": average_length.item(),
-                        "global_step": global_step
-                    })
+                    wandb.log(
+                        {
+                            "training/qf1_loss": qf1_loss_value.item(),
+                            "training/qf2_loss": qf2_loss_value.item(),
+                            "training/qf1_values": qf1_a_values.item(),
+                            "training/qf2_values": qf2_a_values.item(),
+                            "losses/actor_loss": actor_loss_value.item(),
+                            "evalution/reward": average_reward.item(),
+                            "evalution/length": average_length.item(),
+                            "global_step": global_step,
+                        }
+                    )
 
     if args.save_model:
         model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
