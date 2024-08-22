@@ -52,7 +52,7 @@ def main(args):
     run_name = f"cleanrl_{args.agent}_{args.env_id}"
     if args.track:
         import wandb
-
+        start_time = time.time()  # 记录开始时间
         wandb.init(
             project=args.wandb_project_name,
             # entity=args.wandb_entity,
@@ -61,6 +61,7 @@ def main(args):
             group=run_name,
             # mode="offline",
         )
+        wandb.log({"time/elapsed": 0})  # 初始化时记录0秒
 
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
@@ -285,6 +286,7 @@ def main(args):
                             "evalution/reward": average_reward.item(),
                             "evalution/length": average_length.item(),
                             "global_step": global_step,
+                            "time/elapsed": time.time() - start_time,  # 记录当前运行时间
                         }
                     )
 
@@ -304,4 +306,5 @@ def main(args):
 
     envs.close()
     if args.track:
+        wandb.log({"time/total_elapsed": time.time() - start_time})
         wandb.finish()

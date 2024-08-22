@@ -72,7 +72,7 @@ def main(args):
     run_name = f"cleanrl_{args.agent}_{args.env_id}"
     if args.track:
         import wandb
-
+        start_time = time.time()  # 记录开始时间
         wandb.init(
             project=args.wandb_project_name,
             # entity=args.wandb_entity,
@@ -81,6 +81,7 @@ def main(args):
             group=run_name,
             # mode="offline",
         )
+        wandb.log({"time/elapsed": 0})  # 初始化时记录0秒
 
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -207,7 +208,6 @@ def main(args):
                 if global_step % 100 == 0:
                     average_reward, average_length = evaluator.evaluate(actor, q_state)
                     if args.track:
-
                         wandb.log(
                             {
                                 "training/td_loss": jax.device_get(loss),
@@ -215,6 +215,7 @@ def main(args):
                                 "evalution/reward": average_reward.item(),
                                 "evalution/length": average_length.item(),
                                 "global_step": global_step,
+                                "time/elapsed": time.time() - start_time,  # 记录当前运行时间
                             }
                         )
 
@@ -234,4 +235,5 @@ def main(args):
 
     envs.close()
     if args.track:
+        wandb.log({"time/total_elapsed": time.time() - start_time})
         wandb.finish()
