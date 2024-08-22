@@ -6,7 +6,7 @@ import flax
 import flax.linen as nn
 # import gymnasium as gym
 from .wrapper import make_env, ReplayBuffer
-from .utils import Evaluator, AttrDict
+from .utils import Evaluator, AttrDict, Evaluator2
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -85,7 +85,9 @@ def main(args):
 
     # env setup
     envs = make_env(args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs)
-    evaluator = Evaluator(args.env_id, args.seed)
+    # evaluator = Evaluator(args.env_id, args.seed)
+    eval_env = make_env(args.env_id, args.seed, 0, args.capture_video, run_name, args.eval_env_nums)
+    evaluator = Evaluator2(eval_env, args.eval_env_nums, args.seed)
 
     rb = ReplayBuffer(args.buffer_size, envs, args.batch_size, key)
     # TRY NOT TO MODIFY: start the game
@@ -199,11 +201,12 @@ def main(args):
                 # print(
                 #     f"global_step={global_step}, episodic_return={info['episode']['r']}"
                 # )
-                wandb.log({
-                    "training/episodic_return": info["episode"]["r"], 
-                    "training/episodic_length": info["episode"]["l"],
-                    "global_step": global_step
-                })
+                if args.track:
+                    wandb.log({
+                        "training/episodic_return": info["episode"]["r"], 
+                        "training/episodic_length": info["episode"]["l"],
+                        "global_step": global_step
+                    })
                 break
 
         # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
@@ -238,14 +241,15 @@ def main(args):
 
             if global_step % 100 == 0:
                 average_reward, average_length = evaluator.evaluate(actor, actor_state)
-                wandb.log({
-                    "training/qf1_loss": qf1_loss_value.item(),
-                    "training/qf1_values": qf1_a_values.item(),
-                    "losses/actor_loss": actor_loss_value.item(),
-                    "evalution/reward": average_reward.item(),
-                    "evalution/length": average_length.item(),
-                    "global_step": global_step
-                })
+                if args.track:
+                    wandb.log({
+                        "training/qf1_loss": qf1_loss_value.item(),
+                        "training/qf1_values": qf1_a_values.item(),
+                        "losses/actor_loss": actor_loss_value.item(),
+                        "evalution/reward": average_reward.item(),
+                        "evalution/length": average_length.item(),
+                        "global_step": global_step
+                    })
                 # writer.add_scalar("training/qf1_loss", qf1_loss_value.item(), global_step)
                 # writer.add_scalar("training/qf1_values", qf1_a_values.item(), global_step)
                 # writer.add_scalar(
@@ -270,6 +274,5 @@ def main(args):
         print(f"model saved to {model_path}")
 
     envs.close()
-    writer.close()
     if args.track:
         wandb.finish()

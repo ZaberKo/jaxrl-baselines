@@ -7,6 +7,7 @@ capture_video: false
 save_model: false
 upload_model: false
 hf_entity: ""
+run_mode: normal
 
 # Algorithm specific arguments
 agent: dqn
@@ -24,3 +25,4 @@ end_e: 0.05
 exploration_fraction: 0.5
 learning_starts: 10000 #10000
 train_frequency: 10
+eval_env_nums: 10

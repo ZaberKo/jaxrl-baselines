@@ -10,12 +10,24 @@ import jax.numpy as jnp
 import numpy as np
 import optax
 from flax.training.train_state import TrainState
-from .wrapper import make_env, ReplayBuffer
-from .utils import Evaluator, AttrDict
+from stable_baselines3.common.buffers import ReplayBuffer
+from .utils import Evaluator2, AttrDict
 # from tensorboardX import SummaryWriter
 from omegaconf import DictConfig, OmegaConf
 
+def make_env(env_id, seed, idx, capture_video, run_name):
+    def thunk():
+        if capture_video and idx == 0:
+            env = gym.make(env_id, render_mode="rgb_array")
+            env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
+        else:
+            env = gym.make(env_id)
+        env = gym.wrappers.RecordEpisodeStatistics(env)
+        env.action_space.seed(seed)
 
+        return env
+
+    return thunk
 # ALGO LOGIC: initialize agent here:
 class QNetwork(nn.Module):
     action_dim: int
@@ -49,7 +61,7 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
 
 
 def main(args):
-    run_name = f"cleanrl_{args.exp_name}"
+    run_name = f"cleanrl_{args.agent}_{args.env_id}"
     if args.track:
         import wandb
 
@@ -58,17 +70,10 @@ def main(args):
             entity=args.wandb_entity,
             sync_tensorboard=True,
             config=OmegaConf.to_container(args, resolve=True),
-            name=args.exp_name,
+            name=f"{args.agent}_{args.env_id}",
             group=run_name,
             mode="offline"
         )
-  
-    # writer = SummaryWriter(f"runs/{run_name}")
-    # writer.add_text(
-    #     "hyperparameters",
-    #     "|param|value|\n|-|-|\n%s"
-    #     % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
-    # )
 
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -76,14 +81,16 @@ def main(args):
     key, q_key = jax.random.split(key, 2)
 
     # env setup
-    envs = make_env(args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs)
-    evaluator = Evaluator(args.env_id, args.seed)
+    envs = gym.vector.SyncVectorEnv(
+        [make_env(args.env_id, args.seed + i, i, args.capture_video, run_name) for i in range(args.num_envs)]
+    )
+    eval_env = gym.vector.SyncVectorEnv(
+        [make_env(args.env_id, args.seed + i, i, args.capture_video, run_name) for i in range(args.eval_env_nums)]
+    )
+    evaluator = Evaluator2(eval_env, args.eval_env_nums, args.seed)
     obs, _ = envs.reset(seed=args.seed)
 
-    # !!!
-    # There is a problem in brax where the action space is continuous but the dqn's action must be discrete
-    q_network = QNetwork(action_dim=np.prod(envs.single_action_space.n))
-    
+    q_network = QNetwork(action_dim=envs.single_action_space.n)
     q_state = TrainState.create(
         apply_fn=q_network.apply,
         params=q_network.init(q_key, obs),
@@ -97,7 +104,13 @@ def main(args):
         target_params=optax.incremental_update(q_state.params, q_state.target_params, 1)
     )
 
-    rb = ReplayBuffer(args.buffer_size, envs, args.batch_size, key)
+    rb = ReplayBuffer(
+        args.buffer_size,
+        envs.single_observation_space,
+        envs.single_action_space,
+        "cpu",
+        handle_timeout_termination=False,
+    )
 
     @jax.jit
     def update(q_state, observations, actions, next_observations, rewards, dones):
@@ -155,13 +168,17 @@ def main(args):
                     # writer.add_scalar(
                     #     "training/episodic_length", info["episode"]["l"], global_step
                     # )
-                    wandb.log({
-                         "training/episodic_return": info["episode"]["r"],
-                         "training/episodic_length": info["episode"]["l"],
-                         "global_step": global_step
-                    })
-
-        rb.add(obs, next_obs, actions, rewards, terminations, infos)
+                    if args.track:
+                        wandb.log({
+                            "training/episodic_return": info["episode"]["r"],
+                            "training/episodic_length": info["episode"]["l"],
+                            "global_step": global_step
+                        })
+        real_next_obs = next_obs.copy()
+        for idx, trunc in enumerate(truncations):
+            if trunc:
+                real_next_obs[idx] = infos["final_observation"][idx]
+        rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
@@ -170,7 +187,7 @@ def main(args):
         if global_step > args.learning_starts:
             if global_step % args.train_frequency == 0:
                 data = rb.sample(args.batch_size)
-                data = AttrDict(data)
+                # data = AttrDict(data)
                 # perform a gradient-descent step
                 loss, old_val, q_state = update(
                     q_state,
@@ -188,16 +205,18 @@ def main(args):
                     # writer.add_scalar(
                     #     "training/q_values", jax.device_get(old_val).mean(), global_step
                     # )
-                    average_reward, average_length = evaluator.evaluate(actor, q_state)
-                    # writer.add_scalar("evalution/reward", average_reward.item(), global_step)
-                    # writer.add_scalar("evalution/length", average_length.item(), global_step)
-                    wandb.log({
-                        "training/td_loss": jax.device_get(loss),
-                        "training/q_values": jax.device_get(old_val).mean(),
-                        "evalution/reward": average_reward.item(),
-                        "evalution/length": average_length.item(),
-                        "global_step": global_step
-                    })
+                    if args.track:
+                        average_reward, average_length = evaluator.evaluate(actor, q_state)
+                        # writer.add_scalar("evalution/reward", average_reward.item(), global_step)
+                        # writer.add_scalar("evalution/length", average_length.item(), global_step)
+                        
+                        wandb.log({
+                            "training/td_loss": jax.device_get(loss),
+                            "training/q_values": jax.device_get(old_val).mean(),
+                            "evalution/reward": average_reward.item(),
+                            "evalution/length": average_length.item(),
+                            "global_step": global_step
+                        })
 
             # update target network
             if global_step % args.target_network_frequency == 0:
@@ -214,7 +233,6 @@ def main(args):
         print(f"model saved to {model_path}")
 
     envs.close()
-    writer.close()
     if args.track:
         wandb.finish()
     
