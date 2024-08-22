@@ -6,8 +6,6 @@ from agent.ddpg import main as ddpg
 from agent.td3 import main as td3
 from agent.dqn import main as dqn
 
-os.environ["WANDB_MODE"] = "offline"
-
 
 @hydra.main(version_base=None, config_path="./config", config_name="td3")
 def main(config: DictConfig):
@@ -36,7 +34,8 @@ def run_normal(config: DictConfig):
 
 
 def run_test(config: DictConfig):
-    seeds = [42, 3407, 114514, 7, 1, 2021, 31415, 999, 500, 1024, 666]
+    # seeds = [42, 3407, 114514, 7, 1, 2021, 31415, 999, 500, 1024, 666]
+    seeds = [42, 3407, 114514, 2021, 7]
     for i in seeds:
         config.seed = i
         print(f"Running test with random seed={i}")

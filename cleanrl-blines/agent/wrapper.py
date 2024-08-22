@@ -32,7 +32,7 @@ class GymnasiumWrapper(VectorGymWrapper):
         return None
 
 
-def make_env(env_id, seed, idx, capture_video, run_name, num_envs):
+def make_env(env_id, seed, num_envs):
     warnings.filterwarnings("ignore", category=DeprecationWarning, module="brax.*")
     warnings.filterwarnings("ignore", category=DeprecationWarning, module="flashbax.*")
     env = envs.create(env_id, batch_size=num_envs, episode_length=1000)

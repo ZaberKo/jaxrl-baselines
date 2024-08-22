@@ -11,7 +11,7 @@ import numpy as np
 import optax
 from flax.training.train_state import TrainState
 from stable_baselines3.common.buffers import ReplayBuffer
-from .utils import Evaluator
+from .utils import Evaluator_for_gymnasium as Evaluator
 from omegaconf import DictConfig, OmegaConf
 
 
@@ -74,12 +74,11 @@ def main(args):
 
         wandb.init(
             project=args.wandb_project_name,
-            entity=args.wandb_entity,
-            sync_tensorboard=True,
+            # entity=args.wandb_entity,
             config=OmegaConf.to_container(args, resolve=True),
             name=f"{args.agent}_{args.env_id}",
             group=run_name,
-            mode="offline",
+            # mode="offline",
         )
 
     random.seed(args.seed)
@@ -172,15 +171,6 @@ def main(args):
         if "final_info" in infos:
             for info in infos["final_info"]:
                 if info and "episode" in info:
-                    # print(
-                    #     f"global_step={global_step}, episodic_return={info['episode']['r']}"
-                    # )
-                    # writer.add_scalar(
-                    #     "training/episodic_return", info["episode"]["r"], global_step
-                    # )
-                    # writer.add_scalar(
-                    #     "training/episodic_length", info["episode"]["l"], global_step
-                    # )
                     if args.track:
                         wandb.log(
                             {
@@ -214,19 +204,10 @@ def main(args):
                 )
 
                 if global_step % 100 == 0:
-                    # writer.add_scalar(
-                    #     "training/td_loss", jax.device_get(loss), global_step
-                    # )
-                    # writer.add_scalar(
-                    #     "training/q_values", jax.device_get(old_val).mean(), global_step
-                    # )
                     if args.track:
                         average_reward, average_length = evaluator.evaluate(
                             actor, q_state
                         )
-                        # writer.add_scalar("evalution/reward", average_reward.item(), global_step)
-                        # writer.add_scalar("evalution/length", average_length.item(), global_step)
-
                         wandb.log(
                             {
                                 "training/td_loss": jax.device_get(loss),

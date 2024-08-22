@@ -51,22 +51,18 @@ class TrainState(TrainState):
 
 
 def main(args):
-    run_name = f"cleanrl_{args.exp_name}"
+    run_name = f"cleanrl_{args.agent}_{args.env_id}"
     if args.track:
         import wandb
 
         wandb.init(
             project=args.wandb_project_name,
-            entity=args.wandb_entity,
-            sync_tensorboard=True,
+            # entity=args.wandb_entity,
             config=OmegaConf.to_container(args, resolve=True),
-            name=args.exp_name,
+            name=run_name,
             group=run_name,
-            monitor_gym=True,
-            save_code=True,
-            mode="offline",
         )
-
+        print(wandb.run.settings)
     # TRY NOT TO MODIFY: seeding
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -74,13 +70,9 @@ def main(args):
     key, actor_key, qf1_key = jax.random.split(key, 3)
 
     # env setup
-    envs = make_env(
-        args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs
+    envs = make_env(        args.env_id, args.seed, args.num_envs
     )
-    eval_env = make_env(
-        args.env_id, args.seed, 0, args.capture_video, run_name, args.eval_env_nums
-    )
-    evaluator = Evaluator(eval_env, args.eval_env_nums, args.seed)
+    evaluator = Evaluator(args.env_id, args.seed, args.eval_env_nums)
 
     rb = ReplayBuffer(args.buffer_size, envs, args.batch_size, key)
     # TRY NOT TO MODIFY: start the game

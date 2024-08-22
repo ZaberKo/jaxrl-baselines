@@ -10,7 +10,7 @@ import numpy as np
 import optax
 from flax.training.train_state import TrainState
 from .wrapper import make_env, ReplayBuffer
-from .utils import AttrDict, Evaluator
+from .utils import AttrDict, Evaluator_for_brax as Evaluator
 from omegaconf import DictConfig, OmegaConf
 
 
@@ -49,20 +49,17 @@ class TrainState(TrainState):
 
 
 def main(args):
-    run_name = f"cleanrl_{args.exp_name}"
+    run_name = f"cleanrl_{args.agent}_{args.env_id}"
     if args.track:
         import wandb
 
         wandb.init(
             project=args.wandb_project_name,
-            entity=args.wandb_entity,
-            sync_tensorboard=True,
+            # entity=args.wandb_entity,
             config=OmegaConf.to_container(args, resolve=True),
-            name=args.exp_name,
+            name=run_name,
             group=run_name,
-            monitor_gym=True,
-            save_code=True,
-            mode="offline",
+            # mode="offline",
         )
 
     # TRY NOT TO MODIFY: seeding
@@ -72,13 +69,9 @@ def main(args):
     key, actor_key, qf1_key, qf2_key = jax.random.split(key, 4)
 
     # env setup
-    envs = make_env(
-        args.env_id, args.seed, 0, args.capture_video, run_name, args.num_envs
+    envs = make_env(        args.env_id, args.seed, args.num_envs
     )
-    eval_env = make_env(
-        args.env_id, args.seed, 0, args.capture_video, run_name, args.eval_env_nums
-    )
-    evaluator = Evaluator(eval_env, args.eval_env_nums, args.seed)
+    evaluator = Evaluator(args.env_id, args.seed, args.eval_env_nums)
 
     max_action = float(envs.single_action_space.high[0, 0])
     rb = ReplayBuffer(args.buffer_size, envs, args.batch_size, key)
@@ -231,15 +224,6 @@ def main(args):
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         if "final_info" in infos:
             for info in infos["final_info"]:
-                # print(
-                #     f"global_step={global_step}, episodic_return={info['episode']['r']}"
-                # )
-                # writer.add_scalar(
-                #     "training/episodic_return", info["episode"]["r"], global_step
-                # )
-                # writer.add_scalar(
-                #     "training/episodic_length", info["episode"]["l"], global_step
-                # )
                 if args.track:
                     wandb.log(
                         {
@@ -250,11 +234,6 @@ def main(args):
                     )
                 break
 
-        # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
-        # real_next_obs = next_obs.copy()
-        # for idx, trunc in enumerate(truncations):
-        #     if trunc:
-        #         real_next_obs[idx] = infos["final_observation"][idx]
         rb.add(obs, next_obs, actions, rewards, terminations, infos)
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
@@ -290,19 +269,10 @@ def main(args):
                 )
 
             if global_step % 100 == 0:
-                # writer.add_scalar("training/qf1_loss", qf1_loss_value.item(), global_step)
-                # writer.add_scalar("training/qf2_loss", qf2_loss_value.item(), global_step)
-                # writer.add_scalar("training/qf1_values", qf1_a_values.item(), global_step)
-                # writer.add_scalar("training/qf2_values", qf2_a_values.item(), global_step)
-                # writer.add_scalar(
-                #     "losses/actor_loss", actor_loss_value.item(), global_step
-                # )
                 if args.track:
                     average_reward, average_length = evaluator.evaluate(
                         actor, actor_state
                     )
-                    # writer.add_scalar("evalution/reward", average_reward.item(), global_step)
-                    # writer.add_scalar("evalution/length", average_length.item(), global_step)
                     wandb.log(
                         {
                             "training/qf1_loss": qf1_loss_value.item(),
