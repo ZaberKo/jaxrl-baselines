@@ -18,6 +18,7 @@ class GymnasiumWrapper(VectorGymWrapper):
     def step(self, action):
         action = jnp.squeeze(action, axis=0)
         self._state, obs, reward, done, info = self._step(self._state, action)
+        info["final_observation"] = obs
         if done or info["truncation"]:
             obs, _ = self.reset()
         return obs, reward, done, info["truncation"], info
