@@ -1,0 +1,22 @@
+# @package _global_
+
+train_fn: agents.sac.train.train
+env_name: humanoidstandup
+training_config:
+  reward_scaling: 10
+  episode_length: 1000
+  normalize_observations: true
+  action_repeat: 1
+  learning_rate: 0.0006
+  discounting: 0.99
+  num_envs: 64
+  min_replay_size: 8192
+  max_replay_size: 1048576
+  batch_size: 256
+  grad_updates_per_step: 8
+  seed: ${seed}
+  num_evals: 200
+  num_timesteps: 5242880
+  max_devices_per_host: 1
+wandb:
+  name: sac-humanoidstandup-5m
