@@ -114,6 +114,7 @@ class AttrDict:
         # 定制对象的打印信息，方便调试
         return str(self.__ddict__)
 
+
 class Evaluator_for_gymnasium:
     def __init__(self, env, num_envs, seed):
         # 初始化并行环境
@@ -123,23 +124,23 @@ class Evaluator_for_gymnasium:
 
     def evaluate(self, actor, actor_state):
         key, env_key = jax.random.split(self.key)
-        obs, _ = self.env.reset(seed=env_key)
+        env_seed = int(jax.random.randint(env_key, (), 0, 2**15))
+        obs, _ = self.env.reset(seed=env_seed)
         rewards = []
         lengths = []
         self.key = key
-        actor.apply = jax.jit(actor.apply)  # JIT 编译
+        actor_apply = jax.jit(actor.apply)  # JIT 编译
 
         while len(rewards) < self.num_envs:
             # 计算动作
-            q_values = actor.apply(actor_state.params, obs)
-            actions = q_values.argmax(axis=-1)
-
+            actions = actor_apply(actor_state.params, obs)
+            actions = jax.device_get(actions)
             # 执行动作
             next_obs, _, _, _, infos = self.env.step(actions)
 
             if "final_info" in infos:
                 for info in infos["final_info"]:
-                    if "episode" in info:
+                    if info and "episode" in info:
                         rewards.append(info["episode"]["r"])
                         lengths.append(info["episode"]["l"])
 
@@ -154,11 +155,13 @@ class Evaluator_for_gymnasium:
 class Evaluator_for_brax:
     def __init__(self, env_id, seed=0, num_envs=10, num_episodes=1000):
         # 创建并行环境
-        self.env = brax.envs.create(env_id, batch_size=num_envs, episode_length=num_episodes)
+        self.env = brax.envs.create(
+            env_id, batch_size=num_envs, episode_length=num_episodes
+        )
         self.num_envs = num_envs
         self.key = jax.random.PRNGKey(seed)
 
-    @partial(jax.jit, static_argnums=(0,2))
+    @partial(jax.jit, static_argnums=(0, 2))
     def _evaluate(self, env_key, actor_apply, actor_state):
         # 初始化环境和评估器状态
         env_state = self.env.reset(rng=env_key)
@@ -207,5 +210,7 @@ class Evaluator_for_brax:
     def evaluate(self, actor, actor_state):
         key, env_key = jax.random.split(self.key)
         self.key = key
-        average_reward, average_length = self._evaluate(env_key, actor.apply, actor_state)
+        average_reward, average_length = self._evaluate(
+            env_key, actor.apply, actor_state
+        )
         return average_reward, average_length

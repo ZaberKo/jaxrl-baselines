@@ -13,6 +13,7 @@ from flax.training.train_state import TrainState
 from stable_baselines3.common.buffers import ReplayBuffer
 from .utils import Evaluator_for_gymnasium as Evaluator
 from omegaconf import DictConfig, OmegaConf
+from functools import partial
 
 
 def make_env(env_id, seed, idx, capture_video, run_name):
@@ -49,11 +50,11 @@ class Actor:
         self,
         q_network,
     ):
-        self.q_network = q_network
+        self.q_network_apply = q_network.apply
 
-    @jax.jit
+    @partial(jax.jit, static_argnums=(0,))
     def apply(self, params, obs):
-        q_values = self.q_network.apply(params, obs)
+        q_values = self.q_network_apply(params, obs)
         actions = q_values.argmax(axis=-1)
         return actions
 
@@ -204,10 +205,9 @@ def main(args):
                 )
 
                 if global_step % 100 == 0:
+                    average_reward, average_length = evaluator.evaluate(actor, q_state)
                     if args.track:
-                        average_reward, average_length = evaluator.evaluate(
-                            actor, q_state
-                        )
+
                         wandb.log(
                             {
                                 "training/td_loss": jax.device_get(loss),

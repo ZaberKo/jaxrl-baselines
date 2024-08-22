@@ -69,8 +69,7 @@ def main(args):
     key, actor_key, qf1_key, qf2_key = jax.random.split(key, 4)
 
     # env setup
-    envs = make_env(        args.env_id, args.seed, args.num_envs
-    )
+    envs = make_env(args.env_id, args.seed, args.num_envs)
     evaluator = Evaluator(args.env_id, args.seed, args.eval_env_nums)
 
     max_action = float(envs.single_action_space.high[0, 0])

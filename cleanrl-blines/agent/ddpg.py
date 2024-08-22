@@ -6,7 +6,7 @@ import flax.linen as nn
 
 # import gymnasium as gym
 from .wrapper import make_env, ReplayBuffer
-from .utils import Evaluator, AttrDict
+from .utils import Evaluator_for_brax as Evaluator, AttrDict
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -70,8 +70,7 @@ def main(args):
     key, actor_key, qf1_key = jax.random.split(key, 3)
 
     # env setup
-    envs = make_env(        args.env_id, args.seed, args.num_envs
-    )
+    envs = make_env(args.env_id, args.seed, args.num_envs)
     evaluator = Evaluator(args.env_id, args.seed, args.eval_env_nums)
 
     rb = ReplayBuffer(args.buffer_size, envs, args.batch_size, key)
@@ -183,9 +182,6 @@ def main(args):
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         if "final_info" in infos:
             for info in infos["final_info"]:
-                # print(
-                #     f"global_step={global_step}, episodic_return={info['episode']['r']}"
-                # )
                 if args.track:
                     wandb.log(
                         {
@@ -196,11 +192,6 @@ def main(args):
                     )
                 break
 
-        # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
-        # real_next_obs = next_obs
-        # for idx, trunc in enumerate(truncations):
-        #     if trunc:
-        #         real_next_obs[idx] = infos["final_observation"][idx]
         rb.add(obs, next_obs, actions, rewards, terminations, infos)
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
@@ -239,14 +230,6 @@ def main(args):
                             "global_step": global_step,
                         }
                     )
-                # writer.add_scalar("training/qf1_loss", qf1_loss_value.item(), global_step)
-                # writer.add_scalar("training/qf1_values", qf1_a_values.item(), global_step)
-                # writer.add_scalar(
-                #     "losses/actor_loss", actor_loss_value.item(), global_step
-                # )
-
-                # writer.add_scalar("evalution/reward", average_reward.item(), global_step)
-                # writer.add_scalar("evalution/length", average_length.item(), global_step)
 
     if args.save_model:
         model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
