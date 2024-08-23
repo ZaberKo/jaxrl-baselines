@@ -221,17 +221,17 @@ def main(args):
         next_obs, rewards, terminations, truncations, infos = envs.step(actions)
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
-        # if "final_info" in infos:
-        #     for info in infos["final_info"]:
-        #         if args.track:
-        #             wandb.log(
-        #                 {
-        #                     "training/episodic_return": info["episode"]["r"],
-        #                     "training/episodic_length": info["episode"]["l"],
-        #                     "global_step": global_step,
-        #                 }
-        #             )
-        #         break
+        if "final_info" in infos:
+            for info in infos["final_info"]:
+                if args.track:
+                    wandb.log(
+                        {
+                            "training/episodic_return": info["episode"]["r"],
+                            "training/episodic_length": info["episode"]["l"],
+                            "global_step": global_step,
+                        }
+                    )
+                break
 
         real_next_obs = next_obs.copy()
         for idx, trunc in enumerate(jnp.logical_or(truncations, terminations)):
