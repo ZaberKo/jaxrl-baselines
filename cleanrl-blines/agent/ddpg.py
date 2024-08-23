@@ -198,9 +198,9 @@ def main(args):
             check_final_info = False
 
         real_next_obs = next_obs.copy()
-        for idx, trunc in enumerate(truncations):
+        for idx, trunc in enumerate(jnp.logical_or(truncations, terminations)):
             if trunc:
-                real_next_obs[idx] = infos["final_observation"][idx]
+                real_next_obs = real_next_obs.at[idx].set(infos["final_observation"][idx])
         rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
