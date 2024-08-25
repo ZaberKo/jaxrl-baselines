@@ -159,7 +159,7 @@ def main(args):
         )
         return actor_state, qf1_state, actor_loss_value
 
-    check_final_info = True
+    # check_final_info = True
     for global_step in range(args.total_timesteps):
         # ALGO LOGIC: put action logic here
         if global_step < args.learning_starts:
@@ -194,9 +194,6 @@ def main(args):
                         }
                     )
                 break
-        if check_final_info and "final_info" in infos:
-            print(infos["final_info"])
-            check_final_info = False
 
         real_next_obs = next_obs.copy()
         for idx, trunc in enumerate(jnp.logical_or(truncations, terminations)):
