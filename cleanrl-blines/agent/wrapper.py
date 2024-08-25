@@ -20,13 +20,13 @@ class GymnasiumWrapper(VectorGymWrapper):
 
     def step(self, action):
         action = jnp.squeeze(action, axis=0)
-        self._state, _obs, reward, done, info = self._step(self._state, action)
+        self._state, _obs, reward, done, _info = self._step(self._state, action)
 
         self.episodic_return += reward  # 累积奖励
         self.episodic_length += 1  # 累积步数
 
         # 只重置那些done或truncation的环境
-        reset_mask = jnp.logical_or(done, info["truncation"])
+        reset_mask = jnp.logical_or(done, _info["truncation"])
         if jnp.any(reset_mask):
             final_info = []
             for i in range(self._state.obs.shape[0]):
@@ -39,10 +39,12 @@ class GymnasiumWrapper(VectorGymWrapper):
                     })
                     self.episodic_return = self.episodic_return.at[i].set(0)
                     self.episodic_length = self.episodic_length.at[i].set(0)
-            obs, info = self.reset(reset_mask)
+            obs, _info = self.reset(reset_mask)
+            info = _info.copy()
             info["final_info"] = final_info
         else:
             obs = _obs
+            info = _info.copy()
         info["final_observation"] = _obs
 
         return obs, reward, done, info["truncation"], info
@@ -58,12 +60,12 @@ class GymnasiumWrapper(VectorGymWrapper):
             # 只重置需要重置的部分环境
             reset_state, reset_obs, self._key = self._reset(self._key)
             self._state = jax.tree_map(
-                lambda x, y: jnp.where(reset_mask[:, None], x, y),
+                lambda x, y: jnp.where(reset_mask, x, y),
                 reset_state,
                 self._state
             )
             obs = jax.tree_map(
-                lambda x, y: jnp.where(reset_mask[:, None], x, y),
+                lambda x, y: jnp.where(reset_mask, x, y),
                 reset_obs,
                 self._state.obs
             )
@@ -85,7 +87,7 @@ def make_env(env_id, seed, num_envs):
 
 class ReplayBuffer:
 
-    def __init__(self, buffer_size, env, batch_size, key):
+    def __init__(self, buffer_size, env, batch_size, key, save_info=False):
         self.rb, self.rb_state = self._replayer_buffer(buffer_size, batch_size, env)
         self.key = key
         # self.enable_jit()
@@ -118,12 +120,12 @@ class ReplayBuffer:
         self.add = jax.jit(self.add)
         # self.sample = jax.jit(self.sample)
 
-    def add(self, obs, real_next_obs, actions, rewards, terminations, infos):
+    def add(self, obs, real_next_obs, actions, rewards, terminations, truncation):
         actions = jnp.squeeze(actions, axis=0)
 
         # print("Expected structure:", jax.tree_util.tree_structure(self.rb_state.experience['next_obs']))  # Adjust according to your state structure
         item = self._get_rb_item(
-            obs, actions, rewards, real_next_obs, terminations, infos["truncation"]
+            obs, actions, rewards, real_next_obs, terminations, truncation
         )
         self.rb_state = self.rb.add(self.rb_state, item)
 

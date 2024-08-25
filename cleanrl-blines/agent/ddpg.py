@@ -200,7 +200,7 @@ def main(args):
             if trunc:
                 real_next_obs = real_next_obs.at[idx].set(infos["final_observation"][idx])
         
-        rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
+        rb.add(obs, real_next_obs, actions, rewards, terminations, truncations)
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
 

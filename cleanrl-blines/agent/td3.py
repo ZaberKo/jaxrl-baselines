@@ -237,16 +237,8 @@ def main(args):
         for idx, trunc in enumerate(jnp.logical_or(truncations, terminations)):
             if trunc:
                 real_next_obs = real_next_obs.at[idx].set(infos["final_observation"][idx])
-        
-        # 示例代码
-        print(obs.shape)
-        print(real_next_obs.shape)
-        print(actions.shape)
-        print(rewards.shape)
-        print(terminations.shape)
-        print(type(infos))
 
-        rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
+        rb.add(obs, real_next_obs, actions, rewards, terminations, truncations)
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
