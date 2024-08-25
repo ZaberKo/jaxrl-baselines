@@ -14,19 +14,60 @@ class GymnasiumWrapper(VectorGymWrapper):
         self.single_action_space = self.action_space
         self.single_observation_space = self.observation_space
         self._step = jax.jit(self._step)
+        self._reset = jax.jit(self._reset)
+        self.episodic_return = jnp.zeros(self.num_envs)  # 初始化奖励累积
+        self.episodic_length = jnp.zeros(self.num_envs)  # 初始化步数累积
 
     def step(self, action):
         action = jnp.squeeze(action, axis=0)
-        self._state, obs, reward, done, info = self._step(self._state, action)
-        info["final_observation"] = obs
-        if done or info["truncation"]:
-            obs, _ = self.reset()
+        self._state, _obs, reward, done, info = self._step(self._state, action)
+
+        self.episodic_return += reward  # 累积奖励
+        self.episodic_length += 1  # 累积步数
+
+        # 只重置那些done或truncation的环境
+        reset_mask = jnp.logical_or(done, info["truncation"])
+        if jnp.any(reset_mask):
+            final_info = []
+            for i in range(self._state.obs.shape[0]):
+                if reset_mask[i]:
+                    final_info.append({
+                        "episode": {
+                            "r": self.episodic_return[i],
+                            "l": self.episodic_length[i],
+                        }
+                    })
+                    self.episodic_return = self.episodic_return.at[i].set(0)
+                    self.episodic_length = self.episodic_length.at[i].set(0)
+            obs, info = self.reset(reset_mask)
+            info["final_info"] = final_info
+        else:
+            obs = _obs
+        info["final_observation"] = _obs
+
         return obs, reward, done, info["truncation"], info
 
-    def reset(self, seed=None):
+    def reset(self, reset_mask=None, seed=None):
         if seed is not None:
             self.seed(seed)
-        self._state, obs, self._key = self._reset(self._key)
+        
+        if reset_mask is None:
+            # 全部重置
+            self._state, obs, self._key = self._reset(self._key)
+        else:
+            # 只重置需要重置的部分环境
+            reset_state, reset_obs, self._key = self._reset(self._key)
+            self._state = jax.tree_map(
+                lambda x, y: jnp.where(reset_mask[:, None], x, y),
+                reset_state,
+                self._state
+            )
+            obs = jax.tree_map(
+                lambda x, y: jnp.where(reset_mask[:, None], x, y),
+                reset_obs,
+                self._state.obs
+            )
+
         return obs, self._state.info
 
     def close(self):
@@ -56,8 +97,8 @@ class ReplayBuffer:
             sample_batch_size=batch_size,
             add_batches=True,
         )
-        dummy_action = np.squeeze(env.action_space.sample(), axis=0)
-        dummy_obs = np.squeeze(env.observation_space.sample(), axis=0)
+        dummy_action = jnp.squeeze(env.action_space.sample(), axis=0)
+        dummy_obs = jnp.squeeze(env.observation_space.sample(), axis=0)
         dummy_reward = jnp.zeros(())
         dummy_done = jnp.zeros(())
         dummy_next_obs = dummy_obs

@@ -61,6 +61,7 @@ def main(args):
             config=OmegaConf.to_container(args, resolve=True),
             name=run_name,
             group=run_name,
+            mode="offline",
         )
         wandb.log({"time/elapsed": 0})  # 初始化时记录0秒
 
@@ -182,17 +183,17 @@ def main(args):
         next_obs, rewards, terminations, truncations, infos = envs.step(actions)
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
-        # if "final_info" in infos:
-        #     for info in infos["final_info"]:
-        #         if args.track:
-        #             wandb.log(
-        #                 {
-        #                     "training/episodic_return": info["episode"]["r"],
-        #                     "training/episodic_length": info["episode"]["l"],
-        #                     "global_step": global_step,
-        #                 }
-        #             )
-        #         break
+        if "final_info" in infos:
+            for info in infos["final_info"]:
+                if args.track:
+                    wandb.log(
+                        {
+                            "training/episodic_return": info["episode"]["r"],
+                            "training/episodic_length": info["episode"]["l"],
+                            "global_step": global_step,
+                        }
+                    )
+                break
         if check_final_info and "final_info" in infos:
             print(infos["final_info"])
             check_final_info = False
@@ -201,6 +202,7 @@ def main(args):
         for idx, trunc in enumerate(jnp.logical_or(truncations, terminations)):
             if trunc:
                 real_next_obs = real_next_obs.at[idx].set(infos["final_observation"][idx])
+        
         rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs

@@ -59,7 +59,7 @@ def main(args):
             config=OmegaConf.to_container(args, resolve=True),
             name=run_name,
             group=run_name,
-            # mode="offline",
+            mode="offline",
         )
         wandb.log({"time/elapsed": 0})  # 初始化时记录0秒
 
@@ -221,22 +221,31 @@ def main(args):
         next_obs, rewards, terminations, truncations, infos = envs.step(actions)
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
-        # if "final_info" in infos:
-        #     for info in infos["final_info"]:
-        #         if args.track:
-        #             wandb.log(
-        #                 {
-        #                     "training/episodic_return": info["episode"]["r"],
-        #                     "training/episodic_length": info["episode"]["l"],
-        #                     "global_step": global_step,
-        #                 }
-        #             )
-        #         break
+        if "final_info" in infos:
+            for info in infos["final_info"]:
+                if args.track:
+                    wandb.log(
+                        {
+                            "training/episodic_return": info["episode"]["r"],
+                            "training/episodic_length": info["episode"]["l"],
+                            "global_step": global_step,
+                        }
+                    )
+                break
 
         real_next_obs = next_obs.copy()
         for idx, trunc in enumerate(jnp.logical_or(truncations, terminations)):
             if trunc:
                 real_next_obs = real_next_obs.at[idx].set(infos["final_observation"][idx])
+        
+        # 示例代码
+        print(obs.shape)
+        print(real_next_obs.shape)
+        print(actions.shape)
+        print(rewards.shape)
+        print(terminations.shape)
+        print(type(infos))
+
         rb.add(obs, real_next_obs, actions, rewards, terminations, infos)
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
