@@ -26,3 +26,4 @@ exploration_fraction: 0.5
 learning_starts: 10000 #10000
 train_frequency: 10
 eval_env_nums: 10
+eval_freq: 1000

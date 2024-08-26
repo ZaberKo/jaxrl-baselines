@@ -205,19 +205,19 @@ def main(args):
                     data.dones.flatten().numpy(),
                 )
 
-                if global_step % 100 == 0:
-                    average_reward, average_length = evaluator.evaluate(actor, q_state)
-                    if args.track:
-                        wandb.log(
-                            {
-                                "training/td_loss": jax.device_get(loss),
-                                "training/q_values": jax.device_get(old_val).mean(),
-                                "evalution/reward": average_reward.item(),
-                                "evalution/length": average_length.item(),
-                                "global_step": global_step,
-                                "time/elapsed": time.time() - start_time,  # 记录当前运行时间
-                            }
-                        )
+            if global_step % args.eval_freq == 0:
+                average_reward, average_length = evaluator.evaluate(actor, q_state)
+                if args.track:
+                    wandb.log(
+                        {
+                            "training/td_loss": jax.device_get(loss),
+                            "training/q_values": jax.device_get(old_val).mean(),
+                            "evalution/reward": average_reward.item(),
+                            "evalution/length": average_length.item(),
+                            "global_step": global_step,
+                            "time/elapsed": time.time() - start_time,  # 记录当前运行时间
+                        }
+                    )
 
             # update target network
             if global_step % args.target_network_frequency == 0:
@@ -226,7 +226,7 @@ def main(args):
                         q_state.params, q_state.target_params, args.tau
                     )
                 )
-
+    print(f"done with global_step: {global_step}")
     if args.save_model:
         model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
         with open(model_path, "wb") as f:

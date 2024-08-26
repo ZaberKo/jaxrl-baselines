@@ -272,7 +272,7 @@ def main(args):
                     data.observations,
                 )
 
-            if global_step % 100 == 0:
+            if global_step % args.eval_freq == 0:
                 if args.track:
                     average_reward, average_length = evaluator.evaluate(
                         actor, actor_state
@@ -290,7 +290,7 @@ def main(args):
                             "time/elapsed": time.time() - start_time,  # 记录当前运行时间
                         }
                     )
-
+    print(f"done with global_step: {global_step}")
     if args.save_model:
         model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
         with open(model_path, "wb") as f:

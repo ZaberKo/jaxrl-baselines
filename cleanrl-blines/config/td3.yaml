@@ -26,3 +26,4 @@ policy_frequency: 2
 noise_clip: 0.5
 num_envs: 1
 eval_env_nums: 10
+eval_freq: 10000
