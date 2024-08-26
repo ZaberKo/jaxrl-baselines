@@ -34,10 +34,9 @@
             "request": "launch",
             "program": "train.py",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/brax-blines",
+            "cwd": "${workspaceFolder}/cleanrl-blines",
             "args": [
-                "agent=ppo/ant",
-                "training_config.num_evals=100"
+                "--config-name=dqn",
             ],
             "env": {
                 // "JAX_DISABLE_JIT": "true"

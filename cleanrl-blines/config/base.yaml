@@ -2,14 +2,14 @@ exp_name: "algo-env"  # 自动替换为当前脚本的文件名，需要代码�
 seed: 42
 track: true
 wandb_project_name: JAXRL-baselines
-wandb_entity: sustech-emi-org
+wandb_entity: None
 capture_video: false
 save_model: false
 upload_model: false
 hf_entity: ""
 # Algorithm specific arguments
 env_id: "Hopper"
-total_timesteps: 1000000
+total_timesteps: 5000000
 learning_rate: 0.0003
 buffer_size: 1000000
 gamma: 0.99
@@ -19,3 +19,4 @@ exploration_noise: 0.1
 learning_starts: 25000
 policy_frequency: 2
 noise_clip: 0.5
+run_mode: normal
