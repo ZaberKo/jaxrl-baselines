@@ -1,6 +1,6 @@
 exp_name: "ddpg-Hopper"  # Adjust this name based on the actual experiment
 seed: 42
-track: true
+track: false
 wandb_project_name: JAXRL-baselines
 wandb_entity: None
 capture_video: false
