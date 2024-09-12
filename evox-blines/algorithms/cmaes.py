@@ -8,10 +8,13 @@ import wandb
 
 from networks import MLPPolicy
 from utils import metrics_todict, get_1d_array_statistics
+from evaluator import BraxEvaluator
+
+from omegaconf import OmegaConf
 
 
 def train(config):
-    agent_key, workflow_key = jax.random.split(jax.random.PRNGKey(config.seed))
+    key, agent_key, workflow_key = jax.random.split(jax.random.PRNGKey(config.seed), 3)
 
     env = envs.get_environment(env_name=config.env_name)
 
@@ -38,10 +41,17 @@ def train(config):
 
     print(f"num_params={pop_center.shape[0]}")
 
+    num_elites = config.algo.num_elites
+    recombination_weights = jnp.log(num_elites + 0.5) - jnp.log(
+        jnp.arange(1, num_elites + 1)
+    )
+    recombination_weights /= jnp.sum(recombination_weights)
+
     algorithm = algorithms.CMAES(
         center_init=pop_center,
         init_stdev=config.algo.init_stdev,
         pop_size=config.algo.pop_size,
+        recombination_weights=recombination_weights,
     )
 
     workflow = workflows.StdWorkflow(
@@ -51,18 +61,35 @@ def train(config):
         candidate_transforms=[adapter.batched_to_tree],
     )
 
+    evaluator = BraxEvaluator(
+        policy=model.apply,
+        env_name=config.env_name,
+        max_episode_length=config.max_episode_length,
+        num_episodes=config.algo.eval_episodes,
+    )
+
     state = workflow.init(workflow_key)
 
-    
     print("Starting training:")
     total_sampled_episodes = 0
     global_best_episode_return = jnp.finfo(jnp.float32).min
+    global_best_weights = None
+    eval_global_best_flag = False
 
     for i in range(config.algo.num_steps):
         train_info, state = workflow.step(state)
         episode_returns = train_info["fitness"] * workflow.opt_direction
-        best_episode_return = jnp.max(episode_returns)
-        global_best_episode_return = jnp.maximum(global_best_episode_return, best_episode_return)
+
+        best_index = jnp.argmax(episode_returns)
+        best_episode_return = episode_returns[best_index]
+        if best_episode_return > global_best_episode_return:
+            global_best_weights = state.get_child_state("algorithm").population[
+                best_index
+            ]
+            global_best_episode_return = best_episode_return
+            eval_global_best_flag = True
+        else:
+            eval_global_best_flag = False
 
         iters = i + 1
 
@@ -86,12 +113,52 @@ def train(config):
         print(f"best_episode_return={best_episode_return:.2f}")
         print(f"global_best_episode_return={global_best_episode_return:.2f}")
         print(f"CMA-ES sigma={metrics['eval/sigma']}")
-        print("="*20)
+
+        if iters % config.algo.eval_interval == 0:
+            key, center_key = jax.random.split(key)
+            episode_returns = evaluator.evaluate(
+                adapter.to_tree(algo_state.mean), center_key
+            )
+            episode_returns_stats = dict(
+                mean=jnp.mean(episode_returns).tolist(),
+                min=jnp.min(episode_returns).tolist(),
+                max=jnp.max(episode_returns).tolist(),
+            )
+
+            metrics["eval/pop_center_episode_return"] = episode_returns_stats
+            print("+" * 20)
+            print(f"pop_center_episode_return:")
+            print(
+                OmegaConf.to_yaml(
+                    (jtu.tree_map(lambda x: f"{x:.2f}", episode_returns_stats))
+                )
+            )
+
+        if eval_global_best_flag:
+            key, best_key = jax.random.split(key)
+            episode_returns = evaluator.evaluate(
+                adapter.to_tree(global_best_weights), best_key
+            )
+            episode_returns_stats = dict(
+                mean=jnp.mean(episode_returns).tolist(),
+                min=jnp.min(episode_returns).tolist(),
+                max=jnp.max(episode_returns).tolist(),
+            )
+
+            metrics["eval/global_best_episode_return"] = episode_returns_stats
+            print("+" * 20)
+            print(f"global_best_episode_return:")
+            print(
+                OmegaConf.to_yaml(
+                    (jtu.tree_map(lambda x: f"{x:.2f}", episode_returns_stats))
+                )
+            )
 
         wandb.log(
             metrics_todict(metrics),
             step=iters,
         )
+        print("=" * 20)
 
 
 def get_std_statistics(variance):
