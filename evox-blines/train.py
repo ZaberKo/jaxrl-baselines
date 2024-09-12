@@ -35,7 +35,7 @@ def train(config: DictConfig):
         project=config.wandb.project,
         name=wandb_name,
         config=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
-        tags=config.wandb.tags,
+        tags=wandb_tags,
         dir=output_dir
     )
     
