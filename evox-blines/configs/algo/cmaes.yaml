@@ -8,3 +8,5 @@ episodes_for_fitness: 1
 
 num_steps: 1000
 
+policy_network:
+  hidden_layer_sizes: [16, 16]

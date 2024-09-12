@@ -3,11 +3,11 @@ from flax import linen as nn
 
 class MLPPolicy(nn.Module):
     action_dim: int
-    hidden_size: tuple[int] = (16, 16)
+    hidden_layer_sizes: tuple[int] = (16, 16)
 
     @nn.compact
     def __call__(self, x):
-        for size in self.hidden_size:
+        for size in self.hidden_layer_sizes:
             x = nn.Dense(size)(x)
             x = nn.relu(x)
 

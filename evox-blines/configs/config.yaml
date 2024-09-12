@@ -10,5 +10,4 @@ seed: 42
 wandb:
   enable: true
   project: JAXRL-baselines
-  name: default
   tags: [evox]

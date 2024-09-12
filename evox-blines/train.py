@@ -1,15 +1,17 @@
-from evox import workflows, algorithms, problems
-from evox.monitors import EvalMonitor
-
-import jax
-import jax.numpy as jnp
-
-
-from utils import get_output_dir, metrics_todict, set_omegaconf_resolvers
 import hydra
 from omegaconf import OmegaConf, DictConfig
 import wandb
+import time
 
+import jax
+import jax.numpy as jnp
+from evox import workflows, algorithms, problems
+from evox.monitors import EvalMonitor
+
+from utils import get_output_dir, set_omegaconf_resolvers
+
+
+set_omegaconf_resolvers()
 
 @hydra.main(
     version_base=None,
@@ -33,7 +35,10 @@ def train(config: DictConfig):
     )
     
     try:
+        start_t = time.perf_counter()
         train_fn(config)
+        end_t = time.perf_counter()
+        print(f"Training took {end_t - start_t:.2f}/3600 hours")
     except BaseException as e:
         print(e)
         wandb.finish(1)
