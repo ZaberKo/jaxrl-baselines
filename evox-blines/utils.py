@@ -45,4 +45,4 @@ def get_1d_array_statistics(data, histogram=False):
     if histogram:
         res["hist"] = wandb.Histogram(res["val"])
 
-    return data
+    return res
