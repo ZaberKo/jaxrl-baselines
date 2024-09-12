@@ -55,7 +55,10 @@ class BraxEvaluator:
             counter, brax_state, prev_done, total_reward = carry
             action = self.policy(weights, brax_state.obs)
             brax_state = self.jit_env_step(brax_state, action)
-            total_reward += (1 - prev_done) * brax_state.reward
+            reward = jnp.where(
+                prev_done, jnp.zeros_like(brax_state.reward), brax_state.reward
+            )
+            total_reward += reward
             done = jnp.logical_or(brax_state.done, prev_done)
             
             return counter + 1, brax_state, done, total_reward
