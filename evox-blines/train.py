@@ -44,6 +44,8 @@ def train(config: DictConfig):
         train_fn(config)
         end_t = time.perf_counter()
         print(f"Training took {end_t - start_t:.2f}/3600 hours")
+    except Exception as e:
+        raise e
     finally:
         wandb.finish()
 
