@@ -108,7 +108,7 @@ def train(config):
         )
        
         metrics["eval/sigma"] = algo_state.sigma.tolist()
-        diag_cov = adapter.to_tree(jnp.diagonal(state.C))
+        diag_cov = adapter.to_tree(jnp.diagonal(algo_state.C))
         metrics["eval/std"] = get_std_statistics(diag_cov)
 
         print(f"step {iters}:")
