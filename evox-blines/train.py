@@ -25,7 +25,7 @@ def train(config: DictConfig):
 
     train_fn = hydra.utils.get_method(config.algo.train_fn)
 
-    wandb_name = f"evox-{config.algo.name}-{config.env_name}"
+    wandb_name = f"evox-{config.algo.name}-{config.env}"
     wandb.init(
         project=config.wandb.project,
         name=wandb_name,
