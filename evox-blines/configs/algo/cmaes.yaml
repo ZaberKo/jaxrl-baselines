@@ -1,0 +1,10 @@
+train_fn: algorithms.cmaes.train
+name: cmaes
+
+init_stdev: 0.1
+pop_size: 1000
+
+episodes_for_fitness: 1
+
+num_steps: 1000
+

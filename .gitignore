@@ -231,12 +231,3 @@ outputs/
 multirun/
 
 brax-blines/configs/*.json
-
-
-test_*.py
-test_*.yaml
-**/wandb/
-**/runs/
-**/test.py
-**/*.out
-**/*.sh
