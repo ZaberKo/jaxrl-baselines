@@ -4,6 +4,7 @@ import jax.numpy as jnp
 import jax.tree_util as jtu
 from evox.utils import TreeAndVector
 from evox import workflows, algorithms, problems
+import numpy as np
 import wandb
 
 from networks import MLPPolicy
@@ -25,7 +26,7 @@ def train(config):
 
     model = MLPPolicy(
         action_dim=action_dim,
-        hidden_layer_sizes=tuple(config.algo.policy_network.hidden_layer_sizes),
+        hidden_layer_sizes=tuple(config.policy_network.hidden_layer_sizes),
     )
     params = model.init(agent_key, jnp.ones((1, obs_dim)))
     adapter = TreeAndVector(params)
@@ -34,14 +35,14 @@ def train(config):
         policy=model.apply,
         env_name=config.env,
         max_episode_length=config.max_episode_length,
-        num_episodes=config.algo.episodes_for_fitness,
+        num_episodes=config.episodes_for_fitness,
     )
 
     pop_center = adapter.to_vector(params)
 
     print(f"num_params={pop_center.shape[0]}")
 
-    num_elites = config.algo.num_elites
+    num_elites = config.num_elites
     recombination_weights = jnp.log(num_elites + 0.5) - jnp.log(
         jnp.arange(1, num_elites + 1)
     )
@@ -49,8 +50,8 @@ def train(config):
 
     algorithm = algorithms.CMAES(
         center_init=pop_center,
-        init_stdev=config.algo.init_stdev,
-        pop_size=config.algo.pop_size,
+        init_stdev=config.init_stdev,
+        pop_size=config.pop_size,
         recombination_weights=recombination_weights,
     )
 
@@ -65,8 +66,9 @@ def train(config):
         policy=model.apply,
         env_name=config.env,
         max_episode_length=config.max_episode_length,
-        num_episodes=config.algo.eval_episodes,
+        num_episodes=config.eval_episodes,
     )
+    evaluator.evaluate = jax.jit(evaluator.evaluate)
 
     state = workflow.init(workflow_key)
 
@@ -76,7 +78,7 @@ def train(config):
     global_best_weights = None
     eval_global_best_flag = False
 
-    for i in range(config.algo.num_steps):
+    for i in range(config.num_steps):
         train_info, state = workflow.step(state)
         episode_returns = train_info["fitness"] * workflow.opt_direction
 
@@ -93,9 +95,7 @@ def train(config):
 
         iters = i + 1
 
-        total_sampled_episodes += (
-            config.algo.episodes_for_fitness * config.algo.pop_size
-        )
+        total_sampled_episodes += config.episodes_for_fitness * config.pop_size
 
         metrics = dict(
             episode_returns=get_1d_array_statistics(episode_returns, histogram=True),
@@ -114,7 +114,7 @@ def train(config):
         print(f"global_best_episode_return={global_best_episode_return:.2f}")
         print(f"CMA-ES sigma={metrics['eval/sigma']}")
 
-        if iters % config.algo.eval_interval == 0:
+        if iters % config.eval_interval == 0:
             key, center_key = jax.random.split(key)
             episode_returns = evaluator.evaluate(
                 adapter.to_tree(algo_state.mean), center_key
@@ -128,11 +128,7 @@ def train(config):
             metrics["eval/pop_center_episode_return"] = episode_returns_stats
             print("+" * 20)
             print(f"pop_center_episode_return:")
-            print(
-                OmegaConf.to_yaml(
-                    (jtu.tree_map(lambda x: f"{x:.2f}", episode_returns_stats))
-                )
-            )
+            yaml_print(jtu.tree_map(lambda x: f"{x:.2f}", episode_returns_stats))
 
         if eval_global_best_flag:
             key, best_key = jax.random.split(key)
@@ -148,17 +144,17 @@ def train(config):
             metrics["eval/global_best_episode_return"] = episode_returns_stats
             print("+" * 20)
             print(f"global_best_episode_return:")
-            print(
-                OmegaConf.to_yaml(
-                    (jtu.tree_map(lambda x: f"{x:.2f}", episode_returns_stats))
-                )
-            )
+            yaml_print((jtu.tree_map(lambda x: f"{x:.2f}", episode_returns_stats)))
 
         wandb.log(
             metrics_todict(metrics),
             step=iters,
         )
         print("=" * 20)
+
+
+def yaml_print(data):
+    print(OmegaConf.to_yaml(data))
 
 
 def get_std_statistics(variance):

@@ -6,8 +6,9 @@ defaults:
 env: "hopper"
 max_episode_length: 1000
 
+debug: false
+
 seed: 42
 wandb:
-  enable: true
   project: JAXRL-baselines
-  tags: [evox]
+  tags: []

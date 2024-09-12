@@ -53,6 +53,7 @@
             "cwd": "${workspaceFolder}/evox-blines",
             "args": [
                 "algo=cmaes",
+                "env=ant"
             ],
             "env": {
                 // "JAX_DISABLE_JIT": "true"

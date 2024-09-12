@@ -1,5 +1,7 @@
+# @package _global_
+
 train_fn: algorithms.cmaes.train
-name: cmaes
+name: CMAES
 
 init_stdev: 0.1
 pop_size: 1024

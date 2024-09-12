@@ -44,7 +44,7 @@ class BraxEvaluator:
         self.jit_reset = jax.jit(self.env.reset)
         self.jit_env_step = jax.jit(self.env.step)
 
-
+    
     def evaluate(self, weights, key):
 
         def _cond_func(carry):

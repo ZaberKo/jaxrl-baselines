@@ -5,12 +5,11 @@ import time
 
 import jax
 import jax.numpy as jnp
-from evox import workflows, algorithms, problems
-from evox.monitors import EvalMonitor
+from jax import config as jax_config
 
 from utils import get_output_dir, set_omegaconf_resolvers
 
-
+jax_config.update("jax_debug_nans", True)
 set_omegaconf_resolvers()
 
 @hydra.main(
@@ -23,9 +22,15 @@ def train(config: DictConfig):
 
     output_dir = get_output_dir()
 
-    train_fn = hydra.utils.get_method(config.algo.train_fn)
+    train_fn = hydra.utils.get_method(config.train_fn)
 
-    wandb_name = f"evox-{config.algo.name}-{config.env}"
+    wandb_name = f"evox-{config.name}-{config.env}"
+    wandb_tags = list(config.wandb.tags)
+    if len(wandb_tags) > 0:
+        wandb_name += f"|{','.join(wandb_tags)}"
+    wandb_tags.append("evox")
+    wandb_tags.append(config.name)
+
     wandb.init(
         project=config.wandb.project,
         name=wandb_name,
