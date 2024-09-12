@@ -20,9 +20,9 @@ gamma: 0.99
 tau: 0.005
 batch_size: 256
 exploration_noise: 0.1
-learning_starts: 25000 # 25000
+learning_starts: 25000 
 policy_frequency: 2
 noise_clip: 0.5
 num_envs: 1
 eval_env_nums: 10
-eval_freq: 10000
+eval_freq: 20000
