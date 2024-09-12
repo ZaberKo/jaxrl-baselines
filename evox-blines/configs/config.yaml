@@ -3,7 +3,7 @@ defaults:
   - algo: null
   - logging
 
-env_name: "hopper"
+env: "hopper"
 max_episode_length: 1000
 
 seed: 42

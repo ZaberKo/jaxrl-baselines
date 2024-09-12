@@ -16,12 +16,12 @@ from omegaconf import OmegaConf
 def train(config):
     key, agent_key, workflow_key = jax.random.split(jax.random.PRNGKey(config.seed), 3)
 
-    env = envs.get_environment(env_name=config.env_name)
+    env = envs.get_environment(env_name=config.env)
 
     action_dim = env.action_size
     obs_dim = env.observation_size
 
-    print(f"{config.env_name}: obs_dim={obs_dim}, action_dim={action_dim}")
+    print(f"{config.env}: obs_dim={obs_dim}, action_dim={action_dim}")
 
     model = MLPPolicy(
         action_dim=action_dim,
@@ -32,7 +32,7 @@ def train(config):
 
     problem = problems.neuroevolution.Brax(
         policy=model.apply,
-        env_name=config.env_name,
+        env_name=config.env,
         max_episode_length=config.max_episode_length,
         num_episodes=config.algo.episodes_for_fitness,
     )
@@ -63,7 +63,7 @@ def train(config):
 
     evaluator = BraxEvaluator(
         policy=model.apply,
-        env_name=config.env_name,
+        env_name=config.env,
         max_episode_length=config.max_episode_length,
         num_episodes=config.algo.eval_episodes,
     )
