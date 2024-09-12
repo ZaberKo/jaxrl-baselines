@@ -80,12 +80,14 @@ def train(config):
 
     for i in range(config.num_steps):
         train_info, state = workflow.step(state)
+
+        algo_state = state.get_child_state("algorithm")
         episode_returns = train_info["fitness"] * workflow.opt_direction
 
         best_index = jnp.argmax(episode_returns)
         best_episode_return = episode_returns[best_index]
         if best_episode_return > global_best_episode_return:
-            global_best_weights = state.get_child_state("algorithm").population[
+            global_best_weights = algo_state.population[
                 best_index
             ]
             global_best_episode_return = best_episode_return
@@ -104,10 +106,10 @@ def train(config):
             sampled_episodes=total_sampled_episodes,
             iters=iters,
         )
-        algo_state = state.get_child_state("algorithm")
+       
         metrics["eval/sigma"] = algo_state.sigma.tolist()
-        # diag_cov = adapter.to_tree(jnp.diagonal(state.C))
-        # metrics["eval/std"] = get_std_statistics(diag_cov)
+        diag_cov = adapter.to_tree(jnp.diagonal(state.C))
+        metrics["eval/std"] = get_std_statistics(diag_cov)
 
         print(f"step {iters}:")
         print(f"best_episode_return={best_episode_return:.2f}")

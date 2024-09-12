@@ -59,7 +59,9 @@ class BraxEvaluator:
                 prev_done, jnp.zeros_like(brax_state.reward), brax_state.reward
             )
             total_reward += reward
-            done = jnp.logical_or(brax_state.done, prev_done)
+            done = jnp.where(
+                prev_done, prev_done, brax_state.done.astype(jnp.bool)
+            )
             
             return counter + 1, brax_state, done, total_reward
 
