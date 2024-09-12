@@ -109,7 +109,7 @@ def train(config):
        
         metrics["eval/sigma"] = algo_state.sigma.tolist()
         diag_cov = adapter.to_tree(jnp.diagonal(algo_state.C))
-        metrics["eval/std"] = get_std_statistics(diag_cov)
+        metrics["ec/std"] = get_std_statistics(diag_cov)
 
         print(f"step {iters}:")
         print(f"best_episode_return={best_episode_return:.2f}")
