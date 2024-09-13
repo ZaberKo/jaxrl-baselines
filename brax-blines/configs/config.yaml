@@ -10,4 +10,4 @@ wandb:
   enable: true
   project: JAXRL-baselines
   name: default
-  tags: [brax]
+  tags: []

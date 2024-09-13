@@ -18,11 +18,17 @@ def train(config: DictConfig):
 
     output_dir = get_output_dir()
 
+    wandb_name = config.wandb.name
+    wandb_tags = list(config.wandb.tags)
+    if len(wandb_tags) > 0:
+        wandb_name += f"|{','.join(wandb_tags)}"
+    wandb_tags.append("brax")
+
     wandb.init(
         project=config.wandb.project,
-        name=config.wandb.name,
+        name=wandb_name,
         config=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
-        tags=config.wandb.tags,
+        tags=wandb_tags,
         dir=output_dir,
     )
 
@@ -55,10 +61,9 @@ def train(config: DictConfig):
         print(f"time to jit: {times[1] - times[0]}")
         print(f"time to train: {times[-1] - times[1]}")
     except Exception as e:
-        print(e)
-        wandb.finish(1)
-
-    wandb.finish()
+        raise e
+    finally:
+        wandb.finish()
 
 
 if __name__ == "__main__":

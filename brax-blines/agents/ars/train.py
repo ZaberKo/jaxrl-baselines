@@ -28,7 +28,7 @@ from brax.training import acting
 from brax.training import types
 from brax.training.acme import running_statistics
 from brax.training.acme import specs
-from brax.training.agents.ars import networks as ars_networks
+from . import networks as ars_networks
 from brax.training.types import Params
 from brax.training.types import PRNGKey
 from brax.v1 import envs as envs_v1
