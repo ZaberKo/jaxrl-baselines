@@ -1,1 +1,3 @@
 evox @ git+https://github.com/ZaberKo/evox@main
+hydra-core
+wandb
