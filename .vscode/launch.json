@@ -43,6 +43,22 @@
                 // "JAX_DISABLE_JIT": "true"
                 "WANDB_MODE": "disabled"
             }
+        },
+        {
+            "name": "EvoX Train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "train.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/evox-blines",
+            "args": [
+                "algo=cmaes",
+                "env=ant"
+            ],
+            "env": {
+                // "JAX_DISABLE_JIT": "true"
+                "WANDB_MODE": "disabled"
+            }
         }
     ]
 }
