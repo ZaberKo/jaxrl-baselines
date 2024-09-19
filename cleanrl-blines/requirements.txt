@@ -1,0 +1,10 @@
+brax==0.10.4
+flashbax==0.1.2
+flax==0.8.3
+gymnasium==0.29.1
+hydra-core==1.3.2
+jax==0.4.28
+numpy==2.1.1
+omegaconf==2.3.0
+optax==0.2.3
+stable_baselines3==2.3.2
