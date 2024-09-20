@@ -233,3 +233,9 @@ multirun/
 brax-blines/configs/*.json
 
 debug/
+
+# Ignore some files
+*.sh
+*.out
+*wandb/
+
