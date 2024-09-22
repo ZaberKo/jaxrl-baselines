@@ -53,7 +53,7 @@ class TrainState(TrainState):
 
 
 def main(config):
-    assert config.policy_frequency % config.eval_freq == 0
+    assert config.eval_freq % config.policy_frequency == 0
 
     # TRY NOT TO MODIFY: seeding
     # Note: we ensure all ops are on JAX.
