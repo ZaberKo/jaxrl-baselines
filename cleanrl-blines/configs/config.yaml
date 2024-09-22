@@ -5,6 +5,8 @@ defaults:
 
 env_id: hopper
 
+progress_bar: false
+
 seed: 42
 wandb:
   project: JAXRL-baselines
