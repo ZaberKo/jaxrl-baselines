@@ -53,6 +53,7 @@ class TrainState(TrainState):
 
 
 def main(config):
+    assert config.policy_frequency % config.eval_freq == 0
 
     # TRY NOT TO MODIFY: seeding
     # Note: we ensure all ops are on JAX.
@@ -305,8 +306,8 @@ def main(config):
                 key,
             )
 
-            # we still follow the cleanrl original impl
-            if global_step % config.policy_frequency == 0:
+            # cleanrl original impl use `global_step % config.policy_frequency``
+            if (global_step+1) % config.policy_frequency == 0:
                 actor_state, (qf1_state, qf2_state), actor_loss_value = update_actor(
                     actor_state,
                     qf1_state,
