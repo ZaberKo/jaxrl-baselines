@@ -214,13 +214,12 @@ def main(config):
     else:
         _range = range
 
+    sampled_timesteps = 0
     for global_step in _range(config.total_timesteps // config.num_envs):
         # ALGO LOGIC: put action logic here
 
-        sampled_timesteps = (global_step + 1) * config.num_envs
-
         key, action_key = jax.random.split(key)
-        if sampled_timesteps <= config.learning_starts:
+        if sampled_timesteps < config.learning_starts:
             actions = jax.random.uniform(
                 action_key,
                 (envs.num_envs,) + envs.single_action_space.shape,
@@ -239,6 +238,8 @@ def main(config):
                 min=envs.single_action_space.low,
                 max=envs.single_action_space.high,
             )
+
+        sampled_timesteps += config.num_envs
 
         # TRY NOT TO MODIFY: execute the game and log data.
         # [num_envs, ...]
@@ -283,7 +284,7 @@ def main(config):
         obs = next_obs
 
         # ALGO LOGIC: training.
-        if sampled_timesteps > config.learning_starts:
+        if sampled_timesteps >= config.learning_starts:
             # data = rb.sample(config.batch_size)
             data = rb.sample()
 
@@ -304,6 +305,7 @@ def main(config):
                 key,
             )
 
+            # we still follow the cleanrl original impl
             if global_step % config.policy_frequency == 0:
                 actor_state, (qf1_state, qf2_state), actor_loss_value = update_actor(
                     actor_state,
