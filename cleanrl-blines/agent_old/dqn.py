@@ -104,7 +104,7 @@ def main(args):
     evaluator = Evaluator(eval_env, args.eval_env_nums, args.seed)
     obs, _ = envs.reset(seed=args.seed)
 
-    q_network = QNetwork(action_dim=envs.single_action_space.n)
+    q_network = QNetwork(action_dim=envs.action_space.n)
     q_state = TrainState.create(
         apply_fn=q_network.apply,
         params=q_network.init(q_key, obs),
@@ -120,8 +120,8 @@ def main(args):
 
     rb = ReplayBuffer(
         args.buffer_size,
-        envs.single_observation_space,
-        envs.single_action_space,
+        envs.observation_space,
+        envs.action_space,
         "cpu",
         handle_timeout_termination=False,
     )
@@ -159,7 +159,7 @@ def main(args):
         )
         if random.random() < epsilon:
             actions = np.array(
-                [envs.single_action_space.sample() for _ in range(envs.num_envs)]
+                [envs.action_space.sample() for _ in range(envs.num_envs)]
             )
         else:
             q_values = q_network.apply(q_state.params, obs)

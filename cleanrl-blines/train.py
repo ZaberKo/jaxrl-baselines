@@ -1,53 +1,36 @@
 import hydra
 from omegaconf import DictConfig, OmegaConf
-import os
+import wandb
+from utils import get_output_dir, set_omegaconf_resolvers
 
-from agent.ddpg import main as ddpg
-from agent.td3 import main as td3
-from agent.dqn import main as dqn
+set_omegaconf_resolvers()
 
 
-@hydra.main(version_base=None, config_path="./config", config_name="td3")
+@hydra.main(version_base=None, config_path="./configs", config_name="config")
 def main(config: DictConfig):
-    # 打印当前配置
     print(OmegaConf.to_yaml(config))
+    output_dir = get_output_dir()
 
-    if config.run_mode == "normal":
-        run_normal(config)
-    elif config.run_mode == "test":
-        run_test(config)
-    else:
-        raise ValueError(f"Unknown run_mode: {config.run_mode}")
+    train_fn = hydra.utils.get_method(config.train_fn)
 
+    run_name = f"cleanrl_{config.name}_{config.env_id}"
 
-def run_normal(config: DictConfig):
-    # 根据配置中的种子进行实验
-    agent_type = config.agent
-    if agent_type == "dqn":
-        dqn(config)
-    elif agent_type == "td3":
-        td3(config)
-    elif agent_type == "ddpg":
-        ddpg(config)
-    else:
-        raise ValueError("Unsupported agent type specified in the configuration!")
+    wandb_tags = list(config.wandb.tags)
+    if len(wandb_tags) > 0:
+        wandb_name += f"|{','.join(wandb_tags)}"
+    wandb_tags.append("evox")
+    wandb_tags.append(config.name)
 
+    wandb.init(
+        project=config.wandb.project,
+        config=OmegaConf.to_container(config, resolve=True),
+        name=run_name,
+        group=run_name,
+        tags=wandb_tags,
+        dir=output_dir,
+    )
 
-def run_test(config: DictConfig):
-    # seeds = [42, 3407, 114514, 7, 1, 2021, 31415, 999, 500, 1024, 666]
-    seeds = [42, 3407, 114514, 2021, 7]
-    for i in seeds:
-        config.seed = i
-        print(f"Running test with random seed={i}")
-        agent_type = config.agent
-        if agent_type == "dqn":
-            dqn(config)
-        elif agent_type == "td3":
-            td3(config)
-        elif agent_type == "ddpg":
-            ddpg(config)
-        else:
-            raise ValueError("Unsupported agent type specified in the configuration!")
+    train_fn(config)
 
 
 if __name__ == "__main__":

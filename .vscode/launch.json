@@ -53,7 +53,23 @@
             "cwd": "${workspaceFolder}/evox-blines",
             "args": [
                 "algo=cmaes",
-                "env=ant"
+                "env=hopper"
+            ],
+            "env": {
+                // "JAX_DISABLE_JIT": "true"
+                // "WANDB_MODE": "disabled"
+            }
+        },
+        {
+            "name": "CleanRL Train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "train.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/cleanrl-blines",
+            "args": [
+                "agent=td3",
+                "env_id=hopper"
             ],
             "env": {
                 // "JAX_DISABLE_JIT": "true"

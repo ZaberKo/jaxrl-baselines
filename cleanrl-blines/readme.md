@@ -1,6 +1,17 @@
 # Brax-blines
 
+## Setup
+
+Install cleanrl requirements, then
+
+```shell
+pip install -U -r requirements.txt
+```
+
+## Train
+
 Example:
+
 ```shell
 # Train one with certain random seed and config file without tracking
 python train.py run_mode=normal seed=42 track=false --config-name=ddpg 
