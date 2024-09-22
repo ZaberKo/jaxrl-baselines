@@ -257,10 +257,10 @@ def main(config):
 
             wandb.log(
                 {
-                    "training/episodic_return": np.mean(train_episodic_return_list),
-                    "training/episodic_length": np.mean(train_episodic_return_list),
-                    "sampled_timesteps": sampled_timesteps,
-                    "global_step": global_step,
+                    "train/episodic_return": np.mean(train_episodic_return_list),
+                    "train/episodic_length": np.mean(train_episodic_return_list),
+                    "train/sampled_timesteps": sampled_timesteps,
+                    "train/global_step": global_step,
                 },
                 step=global_step,
             )
@@ -321,15 +321,15 @@ def main(config):
                     actor_state, eval_key
                 )
                 data = {
-                    "training/qf1_loss": qf1_loss_value.item(),
-                    "training/qf2_loss": qf2_loss_value.item(),
-                    "training/qf1": qf1_a_values.item(),
-                    "training/qf2": qf2_a_values.item(),
-                    "training/actor_loss": actor_loss_value.item(),
-                    "evalution/episodic_return": episode_return.mean().item(),
-                    "evalution/episodic_length": episode_length.mean().item(),
-                    "sampled_timesteps": sampled_timesteps,
-                    "global_step": global_step,
+                    "train/qf1_loss": qf1_loss_value.item(),
+                    "train/qf2_loss": qf2_loss_value.item(),
+                    "train/qf1": qf1_a_values.item(),
+                    "train/qf2": qf2_a_values.item(),
+                    "train/actor_loss": actor_loss_value.item(),
+                    "eval/episodic_return": episode_return.mean().item(),
+                    "eval/episodic_length": episode_length.mean().item(),
+                    "train/sampled_timesteps": sampled_timesteps,
+                    "train/global_step": global_step,
                 }
                 yaml_print(data)
                 wandb.log(data, step=global_step)
