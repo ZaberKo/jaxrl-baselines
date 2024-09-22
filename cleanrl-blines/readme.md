@@ -2,7 +2,7 @@
 
 ## Setup
 
-Install cleanrl requirements, then
+This repo does not require cleanrl requirements, just directly install our `requirements.txt`
 
 ```shell
 pip install -U -r requirements.txt

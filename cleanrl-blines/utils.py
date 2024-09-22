@@ -28,44 +28,9 @@ def get_output_dir(default_path: str = "./debug"):
 
     return output_dir
 
+
 def yaml_print(data):
     print(OmegaConf.to_yaml(data))
-
-# class Evaluator_for_gymnasium:
-#     def __init__(self, env, num_envs, seed):
-#         # 初始化并行环境
-#         self.env = env
-#         self.num_envs = num_envs
-#         self.key = jax.random.PRNGKey(seed)
-
-#     def evaluate(self, actor, actor_state):
-#         key, env_key = jax.random.split(self.key)
-#         env_seed = int(jax.random.randint(env_key, (), 0, 2**15))
-#         obs, _ = self.env.reset(seed=env_seed)
-#         rewards = []
-#         lengths = []
-#         self.key = key
-#         actor_apply = jax.jit(actor.apply)  # JIT 编译
-
-#         while len(rewards) < self.num_envs:
-#             # 计算动作
-#             actions = actor_apply(actor_state.params, obs)
-#             actions = jax.device_get(actions)
-#             # 执行动作
-#             next_obs, _, _, _, infos = self.env.step(actions)
-
-#             if "final_info" in infos:
-#                 for info in infos["final_info"]:
-#                     if info and "episode" in info:
-#                         rewards.append(info["episode"]["r"])
-#                         lengths.append(info["episode"]["l"])
-
-#             obs = next_obs  # 更新当前的状态
-
-#         rewards = jnp.array(rewards)
-#         lengths = jnp.array(lengths)
-
-#         return jnp.mean(rewards), jnp.mean(lengths)
 
 
 class BraxEvaluator:
