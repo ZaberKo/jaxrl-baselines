@@ -2,16 +2,18 @@
 
 from tqdm import trange
 from functools import partial
+import wandb
 
 import flax
 import flax.linen as nn
+from flax.training.train_state import TrainState
 import gymnasium as gym
 import jax
 import jax.numpy as jnp
 import numpy as np
 import optax
-import wandb
-from flax.training.train_state import TrainState
+
+
 
 from brax_envs import make_env
 from replay_buffer import ReplayBuffer
@@ -208,15 +210,13 @@ def main(config):
         )
         return actor_state, (qf1_state, qf2_state), actor_loss_value
 
-    num_iters = config.total_timesteps // config.num_envs
-
     if config.progress_bar:
         _range = partial(trange, desc="global steps")
     else:
         _range = range
 
     sampled_timesteps = 0
-    for global_step in _range(config.total_timesteps // config.num_envs):
+    for global_step in _range(1, config.total_timesteps // config.num_envs+1):
         # ALGO LOGIC: put action logic here
 
         key, action_key = jax.random.split(key)
@@ -267,8 +267,6 @@ def main(config):
 
         # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
         # real_next_obs = next_obs.copy()
-
-        truncations = truncations.astype(jnp.bool)
         _real_next_obs = []
         for idx, trunc in enumerate(truncations):
             if trunc:
@@ -301,13 +299,13 @@ def main(config):
                 data.observations,
                 data.actions,
                 data.next_observations,
-                data.rewards.flatten(),
-                data.dones.flatten(),
+                data.rewards,
+                data.dones,
                 key,
             )
 
             # cleanrl original impl use `global_step % config.policy_frequency``
-            if (global_step+1) % config.policy_frequency == 0:
+            if global_step % config.policy_frequency == 0:
                 actor_state, (qf1_state, qf2_state), actor_loss_value = update_actor(
                     actor_state,
                     qf1_state,
@@ -315,7 +313,7 @@ def main(config):
                     data.observations,
                 )
 
-            if (global_step + 1) % config.eval_freq == 0:
+            if global_step % config.eval_freq == 0:
                 key, eval_key = jax.random.split(key)
                 episode_return, episode_length = evaluator.evaluate(
                     actor_state, eval_key
