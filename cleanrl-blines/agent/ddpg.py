@@ -159,12 +159,12 @@ def main(config):
         return actor_state, qf1_state, actor_loss_value
 
     if config.progress_bar:
-        _range = partial(trange, desc="global steps")
+        range_fn = partial(trange, desc="global steps")
     else:
-        _range = range
+        range_fn = range
 
     sampled_timesteps = 0
-    for global_step in _range(1, config.total_timesteps // config.num_envs+1):
+    for global_step in range_fn(1, config.total_timesteps // config.num_envs+1):
         # ALGO LOGIC: put action logic here
 
         key, action_key = jax.random.split(key)
