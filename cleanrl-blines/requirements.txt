@@ -1,3 +1,9 @@
+jax[cuda12]
+hydra-core
+wandb
+brax
+flax
+flashbax
 brax==0.10.4
 flashbax==0.1.2
 flax==0.8.3

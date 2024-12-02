@@ -1,0 +1,17 @@
+# @package _global_
+
+train_fn: agent.ddpg.main
+name: ddpg
+total_timesteps: 5000000
+learning_rate: 0.0003
+buffer_size: 1000000
+gamma: 0.99
+tau: 0.005
+batch_size: 256
+exploration_noise: 0.1
+learning_starts: 25000 
+policy_frequency: 2
+noise_clip: 0.5
+num_envs: 1
+eval_episodes: 10
+eval_freq: 25000

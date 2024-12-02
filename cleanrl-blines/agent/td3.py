@@ -1,23 +1,29 @@
 # docs and experiment results can be found at https://docs.cleanrl.dev/rl-algorithms/td3/#td3_continuous_action_jaxpy
-import random
-import time
+
+from tqdm import trange
+from functools import partial
+import wandb
 
 import flax
 import flax.linen as nn
+from flax.training.train_state import TrainState
+import gymnasium as gym
 import jax
 import jax.numpy as jnp
 import numpy as np
 import optax
-from flax.training.train_state import TrainState
-from .wrapper import make_env, ReplayBuffer
-from .utils import AttrDict, Evaluator_for_brax as Evaluator
-from omegaconf import DictConfig, OmegaConf
+
+
+
+from brax_envs import make_env
+from replay_buffer import ReplayBuffer
+from utils import BraxEvaluator, yaml_print
 
 
 # ALGO LOGIC: initialize agent here:
 class QNetwork(nn.Module):
     @nn.compact
-    def __call__(self, x: jnp.ndarray, a: jnp.ndarray):
+    def __call__(self, x: jax.Array, a: jax.Array):
         x = jnp.concatenate([x, a], -1)
         x = nn.Dense(256)(x)
         x = nn.relu(x)
@@ -29,8 +35,8 @@ class QNetwork(nn.Module):
 
 class Actor(nn.Module):
     action_dim: int
-    action_scale: jnp.ndarray
-    action_bias: jnp.ndarray
+    action_scale: jax.Array
+    action_bias: jax.Array
 
     @nn.compact
     def __call__(self, x):
@@ -48,35 +54,37 @@ class TrainState(TrainState):
     target_params: flax.core.FrozenDict
 
 
-def main(args):
-    run_name = f"cleanrl_{args.agent}_{args.env_id}"
-    if args.track:
-        import wandb
-        start_time = time.time()  # 记录开始时间
-        wandb.init(
-            project=args.wandb_project_name,
-            # entity=args.wandb_entity,
-            config=OmegaConf.to_container(args, resolve=True),
-            name=run_name,
-            group=run_name,
-            mode="offline",
-        )
-        wandb.log({"time/elapsed": 0})  # 初始化时记录0秒
+def main(config):
+    assert config.eval_freq % config.policy_frequency == 0
 
     # TRY NOT TO MODIFY: seeding
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-    key = jax.random.PRNGKey(args.seed)
-    key, actor_key, qf1_key, qf2_key = jax.random.split(key, 4)
+    # Note: we ensure all ops are on JAX.
+    # random.seed(config.seed)
+    # np.random.seed(config.seed)
+    key = jax.random.PRNGKey(config.seed)
+    key, rb_key, actor_key, qf1_key, qf2_key = jax.random.split(key, 5)
 
     # env setup
-    envs = make_env(args.env_id, args.seed, args.num_envs)
-    evaluator = Evaluator(args.env_id, args.seed, args.eval_env_nums)
+    # envs = gym.vector.SyncVectorEnv([make_env(config.env_id, config.seed, 0, config.capture_video, run_name)])
+    envs = make_env(config.env_id, config.num_envs, config.seed)
+    assert isinstance(
+        envs.single_action_space, gym.spaces.Box
+    ), "only continuous action space is supported"
 
-    max_action = float(envs.single_action_space.high[0, 0])
-    rb = ReplayBuffer(args.buffer_size, envs, args.batch_size, key)
+    max_action = float(envs.single_action_space.high[0])
+    # envs.single_observation_space.dtype = np.float32
+
+    rb = ReplayBuffer(
+        config.buffer_size,
+        config.batch_size,
+        envs.single_observation_space,
+        envs.single_action_space,
+        rb_key,
+        enable_jit=True,
+    )
+
     # TRY NOT TO MODIFY: start the game
-    obs, _ = envs.reset(seed=args.seed)
+    obs, _ = envs.reset(seed=config.seed)
 
     actor = Actor(
         action_dim=np.prod(envs.single_action_space.shape),
@@ -87,44 +95,50 @@ def main(args):
         apply_fn=actor.apply,
         params=actor.init(actor_key, obs),
         target_params=actor.init(actor_key, obs),
-        tx=optax.adam(learning_rate=args.learning_rate),
+        tx=optax.adam(learning_rate=config.learning_rate),
     )
     qf = QNetwork()
     qf1_state = TrainState.create(
         apply_fn=qf.apply,
         params=qf.init(qf1_key, obs, envs.action_space.sample()),
         target_params=qf.init(qf1_key, obs, envs.action_space.sample()),
-        tx=optax.adam(learning_rate=args.learning_rate),
+        tx=optax.adam(learning_rate=config.learning_rate),
     )
     qf2_state = TrainState.create(
         apply_fn=qf.apply,
         params=qf.init(qf2_key, obs, envs.action_space.sample()),
         target_params=qf.init(qf2_key, obs, envs.action_space.sample()),
-        tx=optax.adam(learning_rate=args.learning_rate),
+        tx=optax.adam(learning_rate=config.learning_rate),
     )
     actor.apply = jax.jit(actor.apply)
     qf.apply = jax.jit(qf.apply)
+
+    evaluator = BraxEvaluator(
+        config.env_id,
+        actor.apply,
+        config.eval_episodes,
+    )
 
     @jax.jit
     def update_critic(
         actor_state: TrainState,
         qf1_state: TrainState,
         qf2_state: TrainState,
-        observations: np.ndarray,
-        actions: np.ndarray,
-        next_observations: np.ndarray,
-        rewards: np.ndarray,
-        terminations: np.ndarray,
-        key: jnp.ndarray,
+        observations: jax.Array,
+        actions: jax.Array,
+        next_observations: jax.Array,
+        rewards: jax.Array,
+        terminations: jax.Array,
+        key: jax.Array,
     ):
         # TODO Maybe pre-generate a lot of random keys
         # also check https://jax.readthedocs.io/en/latest/jax.random.html
         key, noise_key = jax.random.split(key, 2)
         clipped_noise = (
             jnp.clip(
-                (jax.random.normal(noise_key, actions.shape) * args.policy_noise),
-                -args.noise_clip,
-                args.noise_clip,
+                (jax.random.normal(noise_key, actions.shape) * config.policy_noise),
+                -config.noise_clip,
+                config.noise_clip,
             )
             * actor.action_scale
         )
@@ -141,7 +155,7 @@ def main(args):
         ).reshape(-1)
         min_qf_next_target = jnp.minimum(qf1_next_target, qf2_next_target)
         next_q_value = (
-            rewards + (1 - terminations) * args.gamma * (min_qf_next_target)
+            rewards + (1 - terminations) * config.gamma * (min_qf_next_target)
         ).reshape(-1)
 
         def mse_loss(params):
@@ -169,7 +183,7 @@ def main(args):
         actor_state: TrainState,
         qf1_state: TrainState,
         qf2_state: TrainState,
-        observations: np.ndarray,
+        observations: jax.Array,
     ):
         def actor_loss(params):
             return -qf.apply(
@@ -180,73 +194,99 @@ def main(args):
         actor_state = actor_state.apply_gradients(grads=grads)
         actor_state = actor_state.replace(
             target_params=optax.incremental_update(
-                actor_state.params, actor_state.target_params, args.tau
+                actor_state.params, actor_state.target_params, config.tau
             )
         )
 
         qf1_state = qf1_state.replace(
             target_params=optax.incremental_update(
-                qf1_state.params, qf1_state.target_params, args.tau
+                qf1_state.params, qf1_state.target_params, config.tau
             )
         )
         qf2_state = qf2_state.replace(
             target_params=optax.incremental_update(
-                qf2_state.params, qf2_state.target_params, args.tau
+                qf2_state.params, qf2_state.target_params, config.tau
             )
         )
         return actor_state, (qf1_state, qf2_state), actor_loss_value
 
-    for global_step in range(args.total_timesteps):
+    if config.progress_bar:
+        range_fn = partial(trange, desc="global steps")
+    else:
+        range_fn = range
+
+    sampled_timesteps = 0
+    for global_step in range_fn(1, config.total_timesteps // config.num_envs+1):
         # ALGO LOGIC: put action logic here
-        if global_step < args.learning_starts:
-            actions = np.array(
-                [envs.single_action_space.sample() for _ in range(envs.num_envs)]
+
+        key, action_key = jax.random.split(key)
+        if sampled_timesteps < config.learning_starts:
+            actions = jax.random.uniform(
+                action_key,
+                (envs.num_envs,) + envs.single_action_space.shape,
+                minval=envs.single_action_space.low,
+                maxval=envs.single_action_space.high,
             )
         else:
             actions = actor.apply(actor_state.params, obs)
-            actions = np.array(
-                [
-                    (
-                        jax.device_get(actions)[0]
-                        + np.random.normal(
-                            0,
-                            max_action * args.exploration_noise,
-                            size=envs.single_action_space.shape,
-                        )
-                    ).clip(envs.single_action_space.low, envs.single_action_space.high)
-                ]
+            actions += (
+                jax.random.normal(action_key, actions.shape)
+                * max_action
+                * config.exploration_noise
+            )
+            actions = jnp.clip(
+                actions,
+                min=envs.single_action_space.low,
+                max=envs.single_action_space.high,
             )
 
+        sampled_timesteps += config.num_envs
+
         # TRY NOT TO MODIFY: execute the game and log data.
+        # [num_envs, ...]
         next_obs, rewards, terminations, truncations, infos = envs.step(actions)
 
         # TRY NOT TO MODIFY: record rewards for plotting purposes
         if "final_info" in infos:
+            train_episodic_return_list = []
+            train_episodic_length_list = []
             for info in infos["final_info"]:
-                if args.track:
-                    wandb.log(
-                        {
-                            "training/episodic_return": info["episode"]["r"],
-                            "training/episodic_length": info["episode"]["l"],
-                            "global_step": global_step,
-                        }
-                    )
-                break
+                if info is not None:
+                    train_episodic_return_list.append(info["episode"]["r"])
+                    train_episodic_length_list.append(info["episode"]["l"])
 
-        real_next_obs = next_obs.copy()
-        for idx, trunc in enumerate(jnp.logical_or(truncations, terminations)):
+            wandb.log(
+                {
+                    "train/episodic_return": np.mean(train_episodic_return_list),
+                    "train/episodic_length": np.mean(train_episodic_return_list),
+                    "train/sampled_timesteps": sampled_timesteps,
+                    "train/global_step": global_step,
+                },
+                step=global_step,
+            )
+
+        # TRY NOT TO MODIFY: save data to replay buffer; handle `final_observation`
+        # real_next_obs = next_obs.copy()
+        _real_next_obs = []
+        for idx, trunc in enumerate(truncations):
             if trunc:
-                real_next_obs = real_next_obs.at[idx].set(infos["final_observation"][idx])
+                # real_next_obs[idx] = infos["final_observation"][idx]
+                _real_next_obs.append(infos["final_observation"][idx])
+        if len(_real_next_obs) > 0:
+            real_next_obs = next_obs.at[truncations].set(jnp.stack(_real_next_obs))
+        else:
+            real_next_obs = next_obs
 
-        rb.add(obs, real_next_obs, actions, rewards, terminations, truncations)
+        rb.add(obs, real_next_obs, actions, rewards, terminations)
 
         # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
         obs = next_obs
 
         # ALGO LOGIC: training.
-        if global_step > args.learning_starts:
-            data = rb.sample(args.batch_size)
-            data = AttrDict(data)
+        if sampled_timesteps >= config.learning_starts:
+            # data = rb.sample(config.batch_size)
+            data = rb.sample()
+
             (
                 (qf1_state, qf2_state),
                 (qf1_loss_value, qf2_loss_value),
@@ -259,12 +299,13 @@ def main(args):
                 data.observations,
                 data.actions,
                 data.next_observations,
-                data.rewards.flatten(),
-                data.dones.flatten(),
+                data.rewards,
+                data.dones,
                 key,
             )
 
-            if global_step % args.policy_frequency == 0:
+            # cleanrl original impl use `global_step % config.policy_frequency``
+            if global_step % config.policy_frequency == 0:
                 actor_state, (qf1_state, qf2_state), actor_loss_value = update_actor(
                     actor_state,
                     qf1_state,
@@ -272,40 +313,21 @@ def main(args):
                     data.observations,
                 )
 
-            if global_step % args.eval_freq == 0:
-                if args.track:
-                    average_reward, average_length = evaluator.evaluate(
-                        actor, actor_state
-                    )
-                    wandb.log(
-                        {
-                            "training/qf1_loss": qf1_loss_value.item(),
-                            "training/qf2_loss": qf2_loss_value.item(),
-                            "training/qf1_values": qf1_a_values.item(),
-                            "training/qf2_values": qf2_a_values.item(),
-                            "losses/actor_loss": actor_loss_value.item(),
-                            "evalution/reward": average_reward.item(),
-                            "evalution/length": average_length.item(),
-                            "global_step": global_step,
-                            "time/elapsed": time.time() - start_time,  # 记录当前运行时间
-                        }
-                    )
-    print(f"done with global_step: {global_step}")
-    if args.save_model:
-        model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
-        with open(model_path, "wb") as f:
-            f.write(
-                flax.serialization.to_bytes(
-                    [
-                        actor_state.params,
-                        qf1_state.params,
-                        qf2_state.params,
-                    ]
+            if global_step % config.eval_freq == 0:
+                key, eval_key = jax.random.split(key)
+                episode_return, episode_length = evaluator.evaluate(
+                    actor_state, eval_key
                 )
-            )
-        print(f"model saved to {model_path}")
-
-    envs.close()
-    if args.track:
-        wandb.log({"time/total_elapsed": time.time() - start_time})
-        wandb.finish()
+                data = {
+                    "train/qf1_loss": qf1_loss_value.item(),
+                    "train/qf2_loss": qf2_loss_value.item(),
+                    "train/qf1": qf1_a_values.item(),
+                    "train/qf2": qf2_a_values.item(),
+                    "train/actor_loss": actor_loss_value.item(),
+                    "eval/episodic_return": episode_return.mean().item(),
+                    "eval/episodic_length": episode_length.mean().item(),
+                    "train/sampled_timesteps": sampled_timesteps,
+                    "train/global_step": global_step,
+                }
+                yaml_print(data)
+                wandb.log(data, step=global_step)
