@@ -1,0 +1,54 @@
+# @package _global_
+
+defaults:
+  - /agent/meta@target_workflow: paramsac
+  - _self_
+
+workflow_cls: evorl.algorithms.meta.pbt_sac.pbt_param_sac.PBTParamSACWorkflow
+
+pop_size: 32
+
+workflow_steps_per_iter: 1024
+
+random_timesteps: 4096 # timesteps filled into the replay buffer before the first iteration
+warmup_steps: 1024 # warmup_iters = warmup_steps // workflow_steps_per_iter
+
+num_iters: 500
+
+# PBT hyperparameters:
+bottom_ratio: 0.2
+top_ratio: 0.2
+
+perturb_factor:
+  actor_loss_weight: 0.2
+  critic_loss_weight: 0.2
+  discount_g: 0.2
+  log_alpha: 0.2
+
+search_space:
+  actor_loss_weight:
+    low: 0.01
+    high: 10
+  critic_loss_weight:
+    low: 0.01
+    high: 10
+  discount_g: # discount=1-exp(-g), [0.86466, 0.99999]
+    low: 2
+    high: 12
+  log_alpha: # alpha: [0.00674, 1]
+    low: -5
+    high: 0
+
+target_workflow:
+  num_eval_envs: 16
+  eval_episodes: 16
+
+# independent evaluation
+num_eval_envs: 128
+eval_episodes: 128
+eval_interval: 25
+
+checkpoint:
+  save_interval_steps: 50
+
+save_replay_buffer: false

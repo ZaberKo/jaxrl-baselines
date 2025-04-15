@@ -2,6 +2,7 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 import wandb
 from utils import get_output_dir, set_omegaconf_resolvers
+import time
 
 set_omegaconf_resolvers()
 
@@ -30,7 +31,15 @@ def main(config: DictConfig):
         dir=output_dir,
     )
 
-    train_fn(config)
+    try:
+        start_t = time.perf_counter()
+        train_fn(config)
+        end_t = time.perf_counter()
+        print(f"Training took {end_t - start_t:.2f}/3600 hours")
+    except Exception as e:
+        raise e
+    finally:
+        wandb.finish()
 
 
 if __name__ == "__main__":

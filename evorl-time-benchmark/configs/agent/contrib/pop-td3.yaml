@@ -1,0 +1,9 @@
+# @package _global_
+
+defaults:
+  - /agent/td3
+  - _self_
+
+workflow_cls: evorl.algorithms.contrib.pop_td3.PopTD3Workflow
+
+pop_size: 16

@@ -1,0 +1,12 @@
+hydra:
+  # hydra_logging:
+  #   disable_existing_loggers: true
+  run:
+    dir: outputs/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}
+  sweep:
+    dir: multirun/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}
+    subdir: ${sanitize_dirname:${hydra.job.override_dirname}}
+  verbose: false
+
+project: "EvoRL"
+tags: []

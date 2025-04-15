@@ -1,0 +1,37 @@
+# @package _global_
+
+workflow_cls: evorl.algorithms.impala.IMPALAWorkflow
+
+num_envs: 256
+
+normalize_obs: false
+rollout_length: 512 # train_batch_size(timesteps) = rollout_length * minibatch_size
+discount: 0.99
+vtrace_lambda: 0.95
+clip_rho_threshold: 1.0
+clip_c_threshold: 1.0
+clip_pg_rho_threshold: 1.0
+
+adv_mode: official
+
+minibatch_size: 16 # unit: trajactories, must devide num_envs
+reuse_rollout_epochs: 4
+
+total_timesteps: 500000000 # 500M
+
+num_eval_envs: 128
+eval_episodes: 128 # should be divided by num_eval_envs
+eval_interval: 50
+
+loss_weights:
+  actor_loss: 1.0
+  critic_loss: 0.5
+  actor_entropy: -0.1
+
+optimizer:
+  lr: 0.0003
+  grad_clip_norm: 0 # set 0 or none to turn-off
+
+agent_network:
+  actor_hidden_layer_sizes: [256, 256]
+  critic_hidden_layer_sizes: [256, 256]

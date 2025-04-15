@@ -1,0 +1,34 @@
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+# src = ["evorl", "tests"]
+include = ["/**/*.py"]
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = 80
+
+[tool.ruff.lint]
+# Enable all `pydocstyle` rules, limiting to those that adhere to the
+# Google convention via `convention = "google"`, below.
+extend-select = ["D"]
+
+# On top of the Google convention, disable `D417`, which requires
+# documentation for every function parameter.
+ignore = [
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D105", # Missing docstring in magic method
+    "D107", # Missing docstring in public __init__ method
+    "D417", # Requires documentation for every function parameter.
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
