@@ -16,8 +16,10 @@ import wandb
 from datetime import datetime
 import functools
 import os
-from brax.training.agents.ppo import networks as ppo_networks
-from brax.training.agents.ppo import train as ppo
+
+# use local version
+from agents.ppo import networks as ppo_networks
+from agents.ppo import train as ppo
 
 import jax
 from jax import numpy as jp
