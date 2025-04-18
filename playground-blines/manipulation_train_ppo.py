@@ -3,7 +3,7 @@ import os
 xla_flags = os.environ.get("XLA_FLAGS", "")
 xla_flags += " --xla_gpu_triton_gemm_any=True"
 os.environ["XLA_FLAGS"] = xla_flags
-os.environ["MUJCOCO_GL"] = "egl"
+os.environ["MUJOCO_GL"] = "egl"
 
 import argparse
 from pprint import pprint
@@ -21,13 +21,9 @@ from brax.training.agents.ppo import train as ppo
 
 import jax
 from jax import numpy as jp
-from matplotlib import pyplot as plt
+import chex
 import mediapy as media
-from ml_collections import config_dict
-import mujoco
-from mujoco import mjx
 import numpy as np
-from orbax import checkpoint as ocp
 
 from mujoco_playground import wrapper
 from mujoco_playground import registry
@@ -67,16 +63,21 @@ def train_ppo(args):
 
     ppo_params = manipulation_params.brax_ppo_config(env_name)
     ppo_params.num_evals = 100
+    ppo_params.num_timesteps = 2_000_000
     print("ppo_params:")
     print(ppo_params)
 
     config = dict(
-        env_cfg = env_cfg,
-        ppo_params = ppo_params,
+        env_cfg=env_cfg,
+        ppo_params=ppo_params,
     )
-    tags = ['ppo', 'playground']
+    tags = ["ppo", "playground"]
 
-    output_dir = Path(f"output/ppo-{env_name}/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}")
+    output_dir = Path(
+        f"./outputs/ppo-{env_name}/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    )
+    if not output_dir.exists():
+        output_dir.mkdir(parents=True)
 
     wandb.init(
         project="JAXRL-baselines",
@@ -90,13 +91,15 @@ def train_ppo(args):
 
     def metrics_todict(metrics):
         return jax.tree_util.tree_map(
-            lambda x: x.tolist() if isinstance(x, jax.Array) else x, metrics
+            lambda x: x.tolist() if isinstance(x, chex.Array) else x, metrics
         )
 
     def wandb_progess_fn(env_steps, metrics):
         times.append(datetime.now())
+        metrics = metrics_todict(metrics)
+        print(f"env_steps: {env_steps}")
         pprint(metrics)
-        wandb.log(metrics_todict(metrics), env_steps)
+        wandb.log(metrics, env_steps)
 
     ppo_training_params = dict(ppo_params)
     network_factory = ppo_networks.make_ppo_networks
@@ -123,9 +126,10 @@ def train_ppo(args):
 
     wandb.finish()
 
-    video_path = output_dir/f"{env_name}.mp4"
+    video_path = output_dir / f"{env_name}.mp4"
     print(f"Rendering to {video_path}")
     visualize(env, make_inference_fn, params, video_path)
+
 
 def visualize(env, make_inference_fn, params, path):
     env_cfg = env._config
@@ -152,8 +156,7 @@ def visualize(env, make_inference_fn, params, path):
     media.write_video(path, frames, fps=1.0 / env.dt / render_every)
     print(f"reward: {np.sum(rewards)}")
 
+
 if __name__ == "__main__":
     args = parse_args()
-    env, make_inference_fn, params, metrics = train_ppo(args)
-    # 
-    
+    train_ppo(args)

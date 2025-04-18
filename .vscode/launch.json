@@ -45,6 +45,22 @@
             }
         },
         {
+            "name": "Playground Train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "manipulation_train_ppo.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/playground-blines",
+            "args": [
+                "--env_name=PandaPickCube",
+                "--seed=42",
+            ],
+            "env": {
+                // "JAX_DISABLE_JIT": "true"
+                "WANDB_MODE": "disabled"
+            }
+        },
+        {
             "name": "EvoX Train",
             "type": "debugpy",
             "request": "launch",
