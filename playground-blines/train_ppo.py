@@ -43,6 +43,12 @@ def parse_args():
         help="Name of the environment to train on.",
     )
     parser.add_argument(
+        "--num_evals",
+        type=int,
+        default=100,
+        help="Number of evaluations to perform during training.",
+    )
+    parser.add_argument(
         "--seed",
         type=int,
         default=42,
@@ -61,11 +67,18 @@ def train_ppo(args):
     print("env_cfg:")
     print(env_cfg)
 
-    from mujoco_playground.config import manipulation_params
+    from mujoco_playground.config import locomotion_params, manipulation_params, dm_control_suite_params
 
-    ppo_params = manipulation_params.brax_ppo_config(env_name)
+    if env_name in registry.dm_control_suite.ALL_ENVS:
+        ppo_params = dm_control_suite_params.brax_ppo_config(env_name)
+    elif env_name in registry.locomotion.ALL_ENVS:
+        ppo_params = locomotion_params.brax_ppo_config(env_name)
+    elif env_name in registry.manipulation.ALL_ENVS:
+        ppo_params = manipulation_params.brax_ppo_config(env_name)
+    else:
+        raise ValueError(f"Unknown environment: {env_name}")
+
     ppo_params.num_evals = 100
-    ppo_params.num_timesteps = 2_000_000
     print("ppo_params:")
     print(ppo_params)
 
